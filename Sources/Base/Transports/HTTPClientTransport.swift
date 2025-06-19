@@ -260,7 +260,7 @@ public actor HTTPClientTransport: Transport {
         private func processResponse(response: URLResponse, stream: URLSession.AsyncBytes)
             async throws
         {
-            guard let httpResponse = response as? HTTPClientTransport.HTTPURLResponse else {
+            guard let httpResponse = response as? HTTPURLResponse else { // Corrected line
                 throw MCPError.internalError("Invalid HTTP response")
             }
 
