@@ -214,54 +214,6 @@ public actor HTTPClientTransport: Transport {
         #endif
     }
     
-    /// Processes an HTTP response from the server
-    ///
-    /// This handles both JSON and SSE responses according to the MCP specification.
-    /// If the response is JSON, it will be delivered directly to the client.
-    /// If the response is SSE, it will be processed in a background task.
-    ///
-    /// - Parameters:
-    ///   - response: The HTTPURLResponse object
-    ///   - stream: The byte stream containing the response body
-    /// - Throws: MCPError for stream processing failures
-    private func processResponse(response: URLResponse, stream: URLSession.AsyncBytes) async throws {
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw MCPError.internalError("Invalid HTTP response")
-        }
-
-        // Process the response based on content type and status code
-        let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type") ?? ""
-
-        // Extract session ID if present
-        if let newSessionID = httpResponse.value(forHTTPHeaderField: "Mcp-Session-Id") {
-            let wasSessionIDNil = (self.sessionID == nil)
-            self.sessionID = newSessionID
-            if wasSessionIDNil {
-                // Trigger signal on first session ID
-                triggerInitialSessionIDSignal()
-            }
-            logger.debug("Session ID received", metadata: ["sessionID": .string(newSessionID)])
-        }
-
-        try processHTTPResponse(httpResponse, contentType: contentType)
-        guard case 200..<300 = httpResponse.statusCode else { return }
-
-        if contentType.contains("text/event-stream") {
-            // For SSE, processing happens via the stream
-            logger.trace("Received SSE response, processing in streaming task", metadata: [:])
-            try await self.processSSE(stream)
-        } else if contentType.contains("application/json") {
-            // For JSON responses, collect and deliver the data
-            var buffer = Data()
-            for try await byte in stream {
-                buffer.append(byte)
-            }
-            logger.trace("Received JSON response", metadata: ["size": .string("\(buffer.count)")])
-            messageContinuation.yield(buffer)
-        } else {
-            logger.warning("Unexpected content type: $contentType)")
-        }
-    }
     
     /// Processes an HTTP response with data payload (Linux)
     ///
