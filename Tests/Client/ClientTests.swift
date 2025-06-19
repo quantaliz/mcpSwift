@@ -781,4 +781,37 @@ struct ClientTests {
 
         await client.disconnect()
     }
+
+    @Test(
+        "Connect to live server and list capabilities",
+        .timeLimit(.seconds(3)) // Set a 3-second timeout for the entire test
+    )
+    func testLiveServerConnectionAndCapabilities() async throws {
+        let url = URL(string: "https://agents-mcp-hackathon-quantaliz-mcp-micropayments.hf.space/gradio_api/mcp/sse")!
+        let transport = NetworkTransport(url: url)
+        let client = Client(name: "TestClient", version: "1.0")
+
+        // Connect to the server
+        _ = try await client.connect(transport: transport)
+        #expect(await transport.isConnected == true, "Client should be connected")
+
+        // List prompts
+        let (prompts, _) = try await client.listPrompts()
+        // Prompts can be empty, so no specific check on count, just that the call succeeded
+        print("Found \(prompts.count) prompts.")
+
+        // List resources
+        let (resources, _) = try await client.listResources()
+        // Resources can be empty
+        print("Found \(resources.count) resources.")
+
+        // List tools
+        let (tools, _) = try await client.listTools()
+        #expect(!tools.isEmpty, "List of tools should not be empty")
+        print("Found \(tools.count) tools.")
+
+        // Disconnect
+        await client.disconnect()
+        #expect(await transport.isConnected == false, "Client should be disconnected")
+    }
 }
