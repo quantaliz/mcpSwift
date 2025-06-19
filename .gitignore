@@ -70,3 +70,4 @@ DerivedData/
 Package.resolved
 .aider*
 Aider.sh
+.env
