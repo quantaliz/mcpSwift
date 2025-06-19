@@ -446,7 +446,7 @@ import Testing
             let messages = [
                 #"{"id":1,"method":"test1"}"#,
                 #"{"id":2,"method":"test2"}"#,
-                #"{"id":3,"method":"test3"}"#,
+                #"{"id":3,"method":"test3"}"#
             ]
 
             for message in messages {
@@ -547,7 +547,7 @@ import Testing
             let parts = [
                 message.prefix(5).data(using: .utf8)!,
                 message.dropFirst(5).data(using: .utf8)!,
-                "\n".data(using: .utf8)!,
+                "\n".data(using: .utf8)!
             ]
 
             // Queue the parts

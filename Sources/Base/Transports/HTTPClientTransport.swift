@@ -258,8 +258,7 @@ public actor HTTPClientTransport: Transport {
     #else
         // Process response with byte stream (macOS, iOS, etc.)
         private func processResponse(response: URLResponse, stream: URLSession.AsyncBytes)
-            async throws
-        {
+            async throws {
             guard let httpResponse = response as? HTTPURLResponse else { // Corrected line
                 throw MCPError.internalError("Invalid HTTP response")
             }
@@ -525,7 +524,7 @@ public actor HTTPClientTransport: Transport {
                 "SSE event received",
                 metadata: [
                     "type": "\(event.event ?? "message")",
-                    "id": "\(event.id ?? "none")",
+                    "id": "\(event.id ?? "none")"
                 ]
             )
 

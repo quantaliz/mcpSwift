@@ -160,7 +160,7 @@ extension MCPError: Codable {
             if let detail = detail {
                 try container.encode(["detail": detail], forKey: .data)
             }
-        case .serverError(_, _):
+        case .serverError:
             // No additional data for server errors
             break
         case .connectionClosed:

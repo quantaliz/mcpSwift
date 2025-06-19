@@ -60,7 +60,7 @@ struct RoundtripTests {
                     description: "Adds two numbers together",
                     inputSchema: [
                         "a": ["type": "integer", "description": "The first number"],
-                        "a": ["type": "integer", "description": "The second number"],
+                        "a": ["type": "integer", "description": "The second number"]
                     ])
             ])
         }
@@ -93,7 +93,7 @@ struct RoundtripTests {
                     uri: "test://data.json",
                     description: "JSON test data",
                     mimeType: "application/json"
-                ),
+                )
             ])
         }
 

@@ -130,7 +130,7 @@ struct ResourceTests {
     func testListResourcesResult() throws {
         let resources = [
             Resource(name: "resource1", uri: "file://test1.txt"),
-            Resource(name: "resource2", uri: "file://test2.txt"),
+            Resource(name: "resource2", uri: "file://test2.txt")
         ]
 
         let result = ListResources.Result(resources: resources, nextCursor: "next_page")
@@ -150,7 +150,7 @@ struct ResourceTests {
     func testReadResourceResult() throws {
         let contents = [
             Resource.Content.text("Content 1", uri: "file://test1.txt"),
-            Resource.Content.text("Content 2", uri: "file://test2.txt"),
+            Resource.Content.text("Content 2", uri: "file://test2.txt")
         ]
 
         let result = ReadResource.Result(contents: contents)

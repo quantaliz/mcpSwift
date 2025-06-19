@@ -194,7 +194,7 @@ struct ToolTests {
             inputSchema: .object([
                 "properties": .object([
                     "param1": .string("String parameter"),
-                    "param2": .int(42),
+                    "param2": .int(42)
                 ])
             ])
         )
@@ -334,7 +334,7 @@ struct ToolTests {
     func testListToolsResult() throws {
         let tools = [
             Tool(name: "tool1", description: "First tool", inputSchema: nil),
-            Tool(name: "tool2", description: "Second tool", inputSchema: nil),
+            Tool(name: "tool2", description: "Second tool", inputSchema: nil)
         ]
 
         let result = ListTools.Result(tools: tools, nextCursor: "next_page")
@@ -348,7 +348,7 @@ struct ToolTests {
     func testCallToolParameters() throws {
         let arguments: [String: Value] = [
             "param1": .string("value1"),
-            "param2": .int(42),
+            "param2": .int(42)
         ]
 
         let params = CallTool.Parameters(name: "test_tool", arguments: arguments)
@@ -361,7 +361,7 @@ struct ToolTests {
     func testCallToolResult() throws {
         let content = [
             Tool.Content.text("Result 1"),
-            Tool.Content.text("Result 2"),
+            Tool.Content.text("Result 2")
         ]
 
         let result = CallTool.Result(content: content)

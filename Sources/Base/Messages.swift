@@ -124,8 +124,7 @@ extension Request {
             // If params exists and can be decoded, use it
             params = value
         } else if !container.contains(.params)
-            || (try? container.decodeNil(forKey: .params)) == true
-        {
+            || (try? container.decodeNil(forKey: .params)) == true {
             // If params is missing or explicitly null, use Empty for Empty parameters
             // or throw for non-Empty parameters
             if M.Parameters.self == Empty.self {
@@ -343,8 +342,7 @@ public struct Message<N: Notification>: Hashable, Codable, Sendable {
             // If params exists and can be decoded, use it
             params = value
         } else if !container.contains(.params)
-            || (try? container.decodeNil(forKey: .params)) == true
-        {
+            || (try? container.decodeNil(forKey: .params)) == true {
             // If params is missing or explicitly null, use Empty for Empty parameters
             // or throw for non-Empty parameters
             if N.Parameters.self == Empty.self {
@@ -388,8 +386,7 @@ class NotificationHandlerBox: @unchecked Sendable {
 
 /// A typed notification handler that can be used to handle notifications of a specific type
 final class TypedNotificationHandler<N: Notification>: NotificationHandlerBox,
-    @unchecked Sendable
-{
+    @unchecked Sendable {
     private let _handle: @Sendable (Message<N>) async throws -> Void
 
     init(_ handler: @escaping @Sendable (Message<N>) async throws -> Void) {

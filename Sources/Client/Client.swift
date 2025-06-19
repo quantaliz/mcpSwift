@@ -140,8 +140,7 @@ public actor Client {
                         request.continuation.resume(returning: typedValue)
                     } else if let value = value as? Value,
                         let data = try? JSONEncoder().encode(value),
-                        let decoded = try? JSONDecoder().decode(T.self, from: data)
-                    {
+                        let decoded = try? JSONDecoder().decode(T.self, from: data) {
                         request.continuation.resume(returning: decoded)
                     } else {
                         request.continuation.resume(throwing: TypeMismatchError())
@@ -536,8 +535,7 @@ public actor Client {
     // MARK: - Prompts
 
     public func getPrompt(name: String, arguments: [String: Value]? = nil) async throws
-        -> (description: String?, messages: [Prompt.Message])
-    {
+        -> (description: String?, messages: [Prompt.Message]) {
         try validateServerCapability(\.prompts, "Prompts")
         let request = GetPrompt.request(.init(name: name, arguments: arguments))
         let result = try await send(request)
@@ -545,8 +543,7 @@ public actor Client {
     }
 
     public func listPrompts(cursor: String? = nil) async throws
-        -> (prompts: [Prompt], nextCursor: String?)
-    {
+        -> (prompts: [Prompt], nextCursor: String?) {
         try validateServerCapability(\.prompts, "Prompts")
         let request: Request<ListPrompts>
         if let cursor = cursor {
@@ -709,7 +706,7 @@ public actor Client {
                     "Error handling notification",
                     metadata: [
                         "method": "\(message.method)",
-                        "error": "\(error)",
+                        "error": "\(error)"
                     ])
             }
         }
@@ -723,8 +720,7 @@ public actor Client {
         _ keyPath: KeyPath<Server.Capabilities, T?>,
         _ name: String
     )
-        throws
-    {
+        throws {
         if configuration.strict {
             guard let capabilities = serverCapabilities else {
                 throw MCPError.methodNotFound("Server capabilities not initialized")

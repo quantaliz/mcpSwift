@@ -129,7 +129,7 @@ struct PromptTests {
     func testGetPromptParameters() throws {
         let arguments: [String: Value] = [
             "param1": .string("value1"),
-            "param2": .int(42),
+            "param2": .int(42)
         ]
 
         let params = GetPrompt.Parameters(name: "test_prompt", arguments: arguments)
@@ -142,7 +142,7 @@ struct PromptTests {
     func testGetPromptResult() throws {
         let messages: [Prompt.Message] = [
             .user("User message"),
-            .assistant("Assistant response"),
+            .assistant("Assistant response")
         ]
 
         let result = GetPrompt.Result(description: "Test description", messages: messages)
@@ -195,7 +195,7 @@ struct PromptTests {
     func testListPromptsResult() throws {
         let prompts = [
             Prompt(name: "prompt1", description: "First prompt"),
-            Prompt(name: "prompt2", description: "Second prompt"),
+            Prompt(name: "prompt2", description: "Second prompt")
         ]
 
         let result = ListPrompts.Result(prompts: prompts, nextCursor: "next_page")
@@ -289,7 +289,7 @@ struct PromptTests {
         let messages: [Prompt.Message] = [
             .user("First message"),
             .assistant("Second message"),
-            .user("Third message"),
+            .user("Third message")
         ]
 
         #expect(messages.count == 3)
@@ -375,7 +375,7 @@ struct PromptTests {
             .user("I have \(experience) years of experience in the field"),
             .assistant(
                 "Great! \(experience) years is solid experience for a \(position) role at \(company)"
-            ),
+            )
         ]
 
         #expect(conversation.count == 4)
@@ -397,7 +397,7 @@ struct PromptTests {
             .user("Tell me about yourself"),
             .assistant("I'm a software engineer with 5 years of experience"),
             .user("What's your biggest strength?"),
-            .assistant("I'm great at problem-solving and team collaboration"),
+            .assistant("I'm great at problem-solving and team collaboration")
         ]
         #expect(interviewConversation.count == 4)
 
@@ -412,7 +412,7 @@ struct PromptTests {
             .user("I see you have \(yearsExp) years of experience. Tell me about your background"),
             .assistant(
                 "In my \(yearsExp) years as a \(role), I've led multiple successful product launches"
-            ),
+            )
         ]
         #expect(dynamicConversation.count == 4)
 
@@ -423,7 +423,7 @@ struct PromptTests {
             .user("What do you think of the user flow?"),
             .assistant(
                 "The design looks clean and intuitive. I particularly like the navigation structure."
-            ),
+            )
         ]
         #expect(mixedContent.count == 4)
 
@@ -431,8 +431,7 @@ struct PromptTests {
         if case .text = mixedContent[0].content,
             case .image = mixedContent[1].content,
             case .text = mixedContent[2].content,
-            case .text = mixedContent[3].content
-        {
+            case .text = mixedContent[3].content {
             // All content types are correct
         } else {
             #expect(Bool(false), "Content types don't match expected pattern")

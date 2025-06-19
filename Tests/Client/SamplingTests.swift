@@ -65,7 +65,7 @@ struct SamplingTests {
         let preferences = Sampling.ModelPreferences(
             hints: [
                 Sampling.ModelPreferences.Hint(name: "claude-4"),
-                Sampling.ModelPreferences.Hint(name: "gpt-4.1"),
+                Sampling.ModelPreferences.Hint(name: "gpt-4.1")
             ],
             costPriority: 0.8,
             speedPriority: 0.3,
@@ -118,7 +118,7 @@ struct SamplingTests {
 
         let messages: [Sampling.Message] = [
             .user("What is the weather like?"),
-            .assistant("I need to check the weather for you."),
+            .assistant("I need to check the weather for you.")
         ]
 
         let modelPreferences = Sampling.ModelPreferences(
@@ -237,7 +237,7 @@ struct SamplingTests {
         let client = Client(name: "TestClient", version: "1.0")
 
         // Test that sampling handler can be registered
-        let handlerClient = await client.withSamplingHandler { parameters in
+        let handlerClient = await client.withSamplingHandler { _ in
             // Mock handler that returns a simple response
             return CreateSamplingMessage.Result(
                 model: "test-model",
@@ -394,7 +394,7 @@ struct SamplingTests {
         let messages: [Sampling.Message] = [
             .user("First message"),
             .assistant("Second message"),
-            .user("Third message"),
+            .user("Third message")
         ]
 
         #expect(messages.count == 3)
@@ -478,7 +478,7 @@ struct SamplingTests {
             .user("I have an issue with order \(orderNumber) - it's a \(issueType)"),
             .assistant(
                 "I understand you're experiencing a \(issueType) with order \(orderNumber). Let me look into that for you."
-            ),
+            )
         ]
 
         #expect(conversation.count == 4)
@@ -499,7 +499,7 @@ struct SamplingTests {
         let simpleConversation: [Sampling.Message] = [
             .user("What's the weather like?"),
             .assistant("I'd be happy to help you check the weather!"),
-            .user("Thanks!"),
+            .user("Thanks!")
         ]
         #expect(simpleConversation.count == 3)
 
@@ -514,7 +514,7 @@ struct SamplingTests {
             .user("Do you have any discounts?"),
             .assistant(
                 "Yes! We currently have a \(discount)% discount, bringing the price to $\(String(format: "%.2f", price * (1.0 - Double(discount)/100.0)))"
-            ),
+            )
         ]
         #expect(salesConversation.count == 4)
 
@@ -523,7 +523,7 @@ struct SamplingTests {
             .user("Can you analyze this image?"),
             .assistant(.image(data: "analysis_chart_data", mimeType: "image/png")),
             .user("What does it show?"),
-            .assistant("The chart shows a clear upward trend in sales."),
+            .assistant("The chart shows a clear upward trend in sales.")
         ]
         #expect(mixedContent.count == 4)
 
@@ -531,8 +531,7 @@ struct SamplingTests {
         if case .text = mixedContent[0].content,
             case .image = mixedContent[1].content,
             case .text = mixedContent[2].content,
-            case .text = mixedContent[3].content
-        {
+            case .text = mixedContent[3].content {
             // All content types are correct
         } else {
             #expect(Bool(false), "Content types don't match expected pattern")
@@ -614,7 +613,7 @@ struct SamplingIntegrationTests {
         )
 
         // Register sampling handler
-        let handlerClient = await client.withSamplingHandler { parameters in
+        let handlerClient = await client.withSamplingHandler { _ in
             // Mock LLM response
             return CreateSamplingMessage.Result(
                 model: "test-model-v1",
@@ -649,13 +648,13 @@ struct SamplingIntegrationTests {
         let messages: [Sampling.Message] = [
             .user("Analyze the following data and provide insights:"),
             .user("Sales data: Q1: $100k, Q2: $150k, Q3: $200k, Q4: $180k"),
-            .user("Marketing data: Q1: $50k, Q2: $75k, Q3: $100k, Q4: $90k"),
+            .user("Marketing data: Q1: $50k, Q2: $75k, Q3: $100k, Q4: $90k")
         ]
 
         let modelPreferences = Sampling.ModelPreferences(
             hints: [
                 Sampling.ModelPreferences.Hint(name: "claude-4-sonnet"),
-                Sampling.ModelPreferences.Hint(name: "gpt-4.1"),
+                Sampling.ModelPreferences.Hint(name: "gpt-4.1")
             ],
             costPriority: 0.3,
             speedPriority: 0.7,
@@ -675,7 +674,7 @@ struct SamplingIntegrationTests {
                 metadata: [
                     "requestId": "test-123",
                     "priority": "high",
-                    "department": "analytics",
+                    "department": "analytics"
                 ]
             )
             #expect(Bool(false), "Should throw error for unimplemented bidirectional communication")
@@ -870,7 +869,7 @@ struct SamplingIntegrationTests {
             stopSequences: ["STOP", "END"],
             metadata: [
                 "sessionId": "test-session-123",
-                "userId": "user-456",
+                "userId": "user-456"
             ]
         )
 
@@ -916,7 +915,7 @@ struct SamplingIntegrationTests {
                 - Top complaints: shipping delays (12%), product quality (8%)
                 - Top praise: customer service (45%), product features (40%)
                 - NPS Score: 72
-                """),
+                """)
         ]
 
         let dataAnalysisParams = CreateSamplingMessage.Parameters(

@@ -223,7 +223,7 @@ import Testing
                     url: testEndpoint, statusCode: 200, httpVersion: "HTTP/1.1",
                     headerFields: [
                         "Content-Type": "application/json",
-                        "Mcp-Session-Id": newSessionID,
+                        "Mcp-Session-Id": newSessionID
                     ])!
                 return (response, Data())
             }
@@ -261,7 +261,7 @@ import Testing
                     url: testEndpoint, statusCode: 200, httpVersion: "HTTP/1.1",
                     headerFields: [
                         "Content-Type": "application/json",
-                        "Mcp-Session-Id": initialSessionID,
+                        "Mcp-Session-Id": initialSessionID
                     ])!
                 return (response, Data())
             }
@@ -299,7 +299,7 @@ import Testing
             let messageData = #"{"jsonrpc":"2.0","method":"test","id":3}"#.data(using: .utf8)!
 
             await MockURLProtocol.requestHandlerStorage.setHandler {
-                [testEndpoint] (request: URLRequest) in
+                [testEndpoint] (_: URLRequest) in
                 let response = HTTPURLResponse(
                     url: testEndpoint, statusCode: 404, httpVersion: "HTTP/1.1", headerFields: nil)!
                 return (response, Data("Not Found".utf8))
@@ -336,7 +336,7 @@ import Testing
             let messageData = #"{"jsonrpc":"2.0","method":"test","id":4}"#.data(using: .utf8)!
 
             await MockURLProtocol.requestHandlerStorage.setHandler {
-                [testEndpoint] (request: URLRequest) in
+                [testEndpoint] (_: URLRequest) in
                 let response = HTTPURLResponse(
                     url: testEndpoint, statusCode: 500, httpVersion: "HTTP/1.1", headerFields: nil)!
                 return (response, Data("Server Error".utf8))
@@ -377,12 +377,12 @@ import Testing
                 using: .utf8)!
 
             await MockURLProtocol.requestHandlerStorage.setHandler {
-                [testEndpoint] (request: URLRequest) in
+                [testEndpoint] (_: URLRequest) in
                 let response = HTTPURLResponse(
                     url: testEndpoint, statusCode: 200, httpVersion: "HTTP/1.1",
                     headerFields: [
                         "Content-Type": "application/json",
-                        "Mcp-Session-Id": initialSessionID,
+                        "Mcp-Session-Id": initialSessionID
                     ])!
                 return (response, Data())
             }
@@ -433,12 +433,12 @@ import Testing
 
                 // First, set up a handler for the initial POST that will provide a session ID
                 await MockURLProtocol.requestHandlerStorage.setHandler {
-                    [testEndpoint] (request: URLRequest) in
+                    [testEndpoint] (_: URLRequest) in
                     let response = HTTPURLResponse(
                         url: testEndpoint, statusCode: 200, httpVersion: "HTTP/1.1",
                         headerFields: [
                             "Content-Type": "text/plain",
-                            "Mcp-Session-Id": "test-session-123",
+                            "Mcp-Session-Id": "test-session-123"
                         ])!
                     return (response, Data())
                 }
@@ -495,12 +495,12 @@ import Testing
                 // First, set up a handler for the initial POST that will provide a session ID
                 // Use text/plain to prevent its (empty) body from being yielded to messageStream
                 await MockURLProtocol.requestHandlerStorage.setHandler {
-                    [testEndpoint] (request: URLRequest) in
+                    [testEndpoint] (_: URLRequest) in
                     let response = HTTPURLResponse(
                         url: testEndpoint, statusCode: 200, httpVersion: "HTTP/1.1",
                         headerFields: [
                             "Content-Type": "text/plain",
-                            "Mcp-Session-Id": "test-session-123",
+                            "Mcp-Session-Id": "test-session-123"
                         ])!
                     return (response, Data())
                 }
@@ -626,8 +626,7 @@ import Testing
                     return (httpResponse, responseData)
                 } else if method == "tools/call" {
                     // Verify initialize was called first
-                    if let lastRequest = await tracker.getLastRequest(), lastRequest != .initialize
-                    {
+                    if let lastRequest = await tracker.getLastRequest(), lastRequest != .initialize {
                         #expect(Bool(false), "Initialize should be called before callTool")
                     }
 

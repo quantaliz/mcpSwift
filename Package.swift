@@ -7,14 +7,14 @@ import PackageDescription
 var dependencies: [Package.Dependency] = [
     .package(url: "https://github.com/apple/swift-system.git", from: "1.5.0"),
     .package(url: "https://github.com/apple/swift-log.git", from: "1.6.3"),
-    .package(url: "https://github.com/loopwork-ai/EventSource", from: "1.1.1"),
+    .package(url: "https://github.com/loopwork-ai/EventSource", from: "1.1.1")
 ]
 
 // Target dependencies needed on all platforms
 var targetDependencies: [Target.Dependency] = [
     .product(name: "SystemPackage", package: "swift-system"),
     .product(name: "Logging", package: "swift-log"),
-    .product(name: "EventSource", package: "eventsource"),
+    .product(name: "EventSource", package: "eventsource")
 ]
 
 let package = Package(
@@ -25,7 +25,7 @@ let package = Package(
         .iOS("17.0"),
         .watchOS("10.0"),
         .tvOS("17.0"),
-        .visionOS("2.0"),
+        .visionOS("2.0")
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -42,6 +42,6 @@ let package = Package(
             dependencies: targetDependencies),
         .testTarget(
             name: "MCPSwiftTests",
-            dependencies: ["MCPSwift"] + targetDependencies),
+            dependencies: ["MCPSwift"] + targetDependencies)
     ]
 )

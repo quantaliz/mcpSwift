@@ -337,8 +337,7 @@ import Logging
         ///
         /// - Parameter continuation: The continuation to resume when connection is ready
         private func handleConnectionReady(continuation: CheckedContinuation<Void, Swift.Error>)
-            async
-        {
+            async {
             if !connectionContinuationResumed {
                 connectionContinuationResumed = true
                 isConnected = true
@@ -444,8 +443,7 @@ import Logging
         ///
         /// - Parameter continuation: The continuation to resume with cancellation error
         private func handleConnectionCancelled(continuation: CheckedContinuation<Void, Swift.Error>)
-            async
-        {
+            async {
             if !connectionContinuationResumed {
                 connectionContinuationResumed = true
                 logger.warning("Connection cancelled")
@@ -471,8 +469,7 @@ import Logging
         ) async {
             if !isStopping,
                 reconnectionConfig.enabled,
-                reconnectAttempt < reconnectionConfig.maxAttempts
-            {
+                reconnectAttempt < reconnectionConfig.maxAttempts {
                 // Try to reconnect with exponential backoff
                 reconnectAttempt += 1
                 logger.info(
@@ -682,8 +679,7 @@ import Logging
                         if error.isConnectionLost {
                             // If we should reconnect, don't finish the message stream yet
                             if reconnectionConfig.enabled
-                                && reconnectAttempt < reconnectionConfig.maxAttempts
-                            {
+                                && reconnectAttempt < reconnectionConfig.maxAttempts {
                                 reconnectAttempt += 1
                                 logger.info(
                                     "Network connection lost, attempting reconnection (\(reconnectAttempt)/\(reconnectionConfig.maxAttempts))..."
@@ -732,8 +728,7 @@ import Logging
                         logger.error("Receive error: \(error)")
 
                         if reconnectionConfig.enabled
-                            && reconnectAttempt < reconnectionConfig.maxAttempts
-                        {
+                            && reconnectAttempt < reconnectionConfig.maxAttempts {
                             // Similar reconnection logic for other errors
                             reconnectAttempt += 1
                             logger.info(

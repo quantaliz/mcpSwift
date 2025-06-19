@@ -76,7 +76,7 @@ struct ServerTests {
         let server = Server(name: "TestServer", version: "1.0")
 
         // Start with the hook directly
-        try await server.start(transport: transport) { clientInfo, capabilities in
+        try await server.start(transport: transport) { clientInfo, _ in
             #expect(clientInfo.name == "TestClient")
             #expect(clientInfo.version == "1.0")
             await state.setHookCalled()
