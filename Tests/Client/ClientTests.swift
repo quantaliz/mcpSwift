@@ -788,7 +788,7 @@ struct ClientTests {
     )
     func testLiveServerConnectionAndCapabilities() async throws {
         let url = URL(string: "https://agents-mcp-hackathon-quantaliz-mcp-micropayments.hf.space/gradio_api/mcp/sse")!
-        let transport = NetworkTransport(url) // Removed 'url:' label
+        let transport = HTTPClientTransport(endpoint: url)
         let client = Client(name: "TestClient", version: "1.0")
 
         // Connect to the server
