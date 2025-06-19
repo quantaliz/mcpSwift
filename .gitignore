@@ -68,3 +68,5 @@ DerivedData/
 .netrc
 .index-build/
 Package.resolved
+.aider*
+Aider.sh
