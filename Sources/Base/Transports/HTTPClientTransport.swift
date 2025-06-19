@@ -240,7 +240,7 @@ public actor HTTPClientTransport: Transport {
                 // Trigger signal on first session ID
                 triggerInitialSessionIDSignal()
             }
-            logger.debug("Session ID received", metadata: ["sessionID": "\(newSessionID)"])
+            logger.debug("Session ID received", metadata: ["sessionID": .string(newSessionID)])
         }
 
         try processHTTPResponse(httpResponse, contentType: contentType)
@@ -248,7 +248,7 @@ public actor HTTPClientTransport: Transport {
 
         if contentType.contains("text/event-stream") {
             // For SSE, processing happens via the stream
-            logger.trace("Received SSE response, processing in streaming task")
+            logger.trace("Received SSE response, processing in streaming task", metadata: [:])
             try await self.processSSE(stream)
         } else if contentType.contains("application/json") {
             // For JSON responses, collect and deliver the data
@@ -256,7 +256,7 @@ public actor HTTPClientTransport: Transport {
             for try await byte in stream {
                 buffer.append(byte)
             }
-            logger.trace("Received JSON response", metadata: ["size": "\(buffer.count)"])
+            logger.trace("Received JSON response", metadata: ["size": .string("\(buffer.count)")])
             messageContinuation.yield(buffer)
         } else {
             logger.warning("Unexpected content type: \(contentType)")
@@ -289,7 +289,7 @@ public actor HTTPClientTransport: Transport {
 
         // For JSON responses, deliver the data directly
         if contentType.contains("application/json") {
-            logger.trace("Received JSON response", metadata: ["size": "\(data.count)"])
+            logger.trace("Received JSON response", metadata: ["size": .string("\(data.count)")])
             messageContinuation.yield(data)
         } else {
             logger.warning("Unexpected content type: \(contentType)")
@@ -489,8 +489,8 @@ public actor HTTPClientTransport: Transport {
         }
         
         logger.debug("Establishing event connection", metadata: [
-            "url": endpoint.absoluteString,
-            "sessionID": sessionID ?? "none"
+            "url": .string(endpoint.absoluteString),
+            "sessionID": .string(sessionID ?? "none")
         ])
         
         #if os(Linux)
@@ -522,7 +522,8 @@ public actor HTTPClientTransport: Transport {
             // SSE is not fully supported on Linux
             if streaming {
                 logger.warning(
-                    "SSE streaming was requested but is not fully supported on Linux. SSE connection will not be attempted."
+                    "SSE streaming was requested but is not fully supported on Linux. SSE connection will not be attempted.",
+                    metadata: [:]
                 )
             }
         #else
@@ -623,8 +624,8 @@ public actor HTTPClientTransport: Transport {
             logger.trace(
                 "SSE event received",
                 metadata: [
-                    "type": "\(event.event ?? "message")",
-                    "id": "\(event.id ?? "none")"
+                    "type": .string(event.event ?? "message"),
+                    "id": .string(event.id ?? "none")
                 ]
             )
             
@@ -637,6 +638,6 @@ public actor HTTPClientTransport: Transport {
             }
         }
         
-        logger.debug("SSE stream ended - will reconnect")
+        logger.debug("SSE stream ended - will reconnect", metadata: [:])
     }
 }
