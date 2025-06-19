@@ -468,6 +468,48 @@ public actor HTTPClientTransport: Transport {
 
     /// Starts listening for server events using SSE
     ///
+    /// Sends a GET request to establish an SSE connection or long-polling
+    ///
+    /// This follows the MCP specification for Streamable HTTP transport:
+    /// 1. Clients MUST include the `Accept: text/event-stream` header
+    /// 2. Clients MUST use the same endpoint URL as for POST requests
+    /// 3. Clients SHOULD include the session ID if available
+    ///
+    /// - Returns: A tuple containing the byte stream and HTTP response
+    /// - Throws: MCPError for connection failures
+    private func establishEventConnection() async throws -> (URLSession.AsyncBytes, HTTPURLResponse) {
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "GET"
+        request.addValue("text/event-stream", forHTTPHeaderField: "Accept")
+        request.addValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        
+        // Add session ID if available
+        if let sessionID = sessionID {
+            request.addValue(sessionID, forHTTPHeaderField: "Mcp-Session-Id")
+        }
+        
+        logger.debug("Establishing event connection", metadata: [
+            "url": endpoint.absoluteString,
+            "sessionID": sessionID ?? "none"
+        ])
+        
+        #if os(Linux)
+        let (responseData, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw MCPError.internalError("Invalid HTTP response")
+        }
+        return (responseData.makeAsyncBytes(), httpResponse)
+        #else
+        let (stream, response) = try await session.bytes(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw MCPError.internalError("Invalid HTTP response")
+        }
+        return (stream, httpResponse)
+        #endif
+    }
+
+    /// Starts listening for server events using SSE
+    ///
     /// This establishes a long-lived HTTP connection using Server-Sent Events (SSE)
     /// to enable server-to-client push messaging. It handles:
     ///
