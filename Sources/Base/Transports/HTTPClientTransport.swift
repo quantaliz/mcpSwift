@@ -488,6 +488,7 @@ public actor HTTPClientTransport: Transport {
         request.httpMethod = "GET"
         request.addValue("text/event-stream", forHTTPHeaderField: "Accept")
         request.addValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
         // Add session ID if available
         if let sessionID = sessionID {
@@ -506,7 +507,7 @@ public actor HTTPClientTransport: Transport {
         // Check response status
         guard httpResponse.statusCode == 200 else {
             // If the server returns 405 Method Not Allowed,
-            // it indicates that the server doesn't support SSE streaming.
+            // it indicates that the server does not support SSE streaming.
             // We should cancel the task instead of retrying the connection.
             if httpResponse.statusCode == 405 {
                 self.streamingTask?.cancel()
