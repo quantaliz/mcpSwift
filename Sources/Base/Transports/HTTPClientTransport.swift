@@ -23,10 +23,6 @@ import Logging
 /// - Automatic reconnection for dropped SSE streams
 /// - Platform-specific optimizations for different operating systems
 ///
-/// The transport supports two modes:
-/// - Regular HTTP (`streaming=false`): Simple request/response pattern
-/// - Streaming HTTP with SSE (`streaming=true`): Enables server-to-client push messages
-///
 /// - Important: Server-Sent Events (SSE) functionality is not supported on Linux platforms.
 ///
 /// ## Example Usage
@@ -62,7 +58,7 @@ public actor HTTPClientTransport: Transport {
     /// Maximum time to wait for a session ID before proceeding with SSE connection
     public let sseInitializationTimeout: TimeInterval
 
-    private var isConnected = false
+    internal var isConnected = false
     private let messageStream: AsyncThrowingStream<Data, Swift.Error>
     private let messageContinuation: AsyncThrowingStream<Data, Swift.Error>.Continuation
 
@@ -264,7 +260,7 @@ public actor HTTPClientTransport: Transport {
         private func processResponse(response: URLResponse, stream: URLSession.AsyncBytes)
             async throws
         {
-            guard let httpResponse = response as? HTTPURLResponse else {
+            guard let httpResponse = response as? HTTPClientTransport.HTTPURLResponse else {
                 throw MCPError.internalError("Invalid HTTP response")
             }
 
