@@ -784,11 +784,11 @@ struct ClientTests {
 
     @Test(
         "Connect to live server and list capabilities",
-        .timeLimit(.seconds(3)) // Set a 3-second timeout for the entire test
+        .timeLimit(.minutes(1)) // Set a 1-minute timeout for the entire test
     )
     func testLiveServerConnectionAndCapabilities() async throws {
         let url = URL(string: "https://agents-mcp-hackathon-quantaliz-mcp-micropayments.hf.space/gradio_api/mcp/sse")!
-        let transport = NetworkTransport(url: url)
+        let transport = NetworkTransport(url) // Removed 'url:' label
         let client = Client(name: "TestClient", version: "1.0")
 
         // Connect to the server
