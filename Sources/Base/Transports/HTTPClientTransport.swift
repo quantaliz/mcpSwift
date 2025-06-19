@@ -49,7 +49,7 @@ public actor HTTPClientTransport: Transport {
 
     /// The session ID assigned by the server, used for maintaining state across requests
     public private(set) var sessionID: String?
-    private let streaming: Bool
+    public let streaming: Bool
     private var streamingTask: Task<Void, Never>?
 
     /// Logger instance for transport-related events
@@ -135,20 +135,14 @@ public actor HTTPClientTransport: Transport {
 
     /// Establishes connection with the transport
     ///
-    /// This prepares the transport for communication and sets up SSE streaming
-    /// if streaming mode is enabled. The actual HTTP connection happens with the
-    /// first message sent.
+    /// This prepares the transport for communication. The actual HTTP connection happens with the
+    /// first message sent, and SSE streaming is started via `startStreaming()` if enabled.
     public func connect() async throws {
         guard !isConnected else { return }
         isConnected = true
 
         // Setup initial session ID signal
         setupInitialSessionIDSignal()
-
-        if streaming {
-            // Start listening to server events
-            streamingTask = Task { await startListeningForServerEvents() }
-        }
 
         logger.info("HTTP transport connected")
     }
@@ -360,6 +354,30 @@ public actor HTTPClientTransport: Transport {
     /// - Returns: An AsyncThrowingStream of Data objects
     public func receive() -> AsyncThrowingStream<Data, Swift.Error> {
         return messageStream
+    }
+
+    /// Starts listening for server events using SSE.
+    ///
+    /// This method should be called by the client after successful initialization
+    /// and capability negotiation, if streaming is desired and supported.
+    ///
+    /// - Throws: `MCPError.internalError` if the transport is not connected or streaming is disabled.
+    public func startStreaming() async throws {
+        guard streaming else {
+            logger.info("Streaming is disabled for this transport instance.")
+            return
+        }
+        guard isConnected else {
+            throw MCPError.internalError("Transport not connected, cannot start streaming.")
+        }
+        guard streamingTask == nil else {
+            logger.info("Streaming task already running.")
+            return
+        }
+
+        // Start listening to server events
+        streamingTask = Task { await startListeningForServerEvents() }
+        logger.info("HTTP transport streaming started.")
     }
 
     // MARK: - SSE

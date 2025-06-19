@@ -522,6 +522,12 @@ public actor Client {
         self.serverVersion = result.protocolVersion
         self.instructions = result.instructions
 
+        // If the transport is an HTTPClientTransport and it's configured for streaming,
+        // tell it to start the SSE listener now that initialization is complete.
+        if let httpClientTransport = self.connection as? HTTPClientTransport, httpClientTransport.streaming {
+            try await httpClientTransport.startStreaming()
+        }
+
         try await notify(InitializedNotification.message())
 
         return result
