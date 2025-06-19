@@ -17,7 +17,9 @@ import Foundation
 public enum Version {
     /// All protocol versions supported by this implementation, ordered from newest to oldest.
     static let supported: Set<String> = [
-        "2025-03-26"
+        "2024-11-05",
+        "2025-03-26",
+        "2025-06-18" // Added based on schema files
     ]
 
     /// The latest protocol version supported by this implementation.
