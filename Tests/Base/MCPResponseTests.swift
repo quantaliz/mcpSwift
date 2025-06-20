@@ -1,5 +1,5 @@
 //
-//  ResponseTests.swift
+//  MCPResponseTests.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -14,8 +14,8 @@ import class Foundation.JSONEncoder
 
 @testable import MCPSwift
 
-@Suite("Response Tests")
-struct ResponseTests {
+@Suite("MCP Response Tests")
+struct MCPResponseTests {
     struct TestMethod: MCPMethod {
         struct Parameters: Codable, Hashable, Sendable {
             let value: String

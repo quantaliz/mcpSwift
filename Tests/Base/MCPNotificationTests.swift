@@ -1,5 +1,5 @@
 //
-//  NotificationTests.swift
+//  MCPNotificationTests.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -15,7 +15,7 @@ import class Foundation.JSONEncoder
 @testable import MCPSwift
 
 @Suite("Notification Tests")
-struct NotificationTests {
+struct MCPNotificationTests {
     struct TestNotification: Notification {
         struct Parameters: Codable, Hashable, Sendable {
             let event: String
