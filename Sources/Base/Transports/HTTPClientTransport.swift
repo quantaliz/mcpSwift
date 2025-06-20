@@ -486,9 +486,12 @@ public actor HTTPClientTransport: Transport {
             while isConnected && !Task.isCancelled {
                 do {
                     try await connectToEventStream()
+                } catch StreamableHTTPTransportError.methodNotAllowed {
+                    logger.warning("Server does not support SSE GET - stopping event listener")
+                    break
                 } catch {
                     if !Task.isCancelled {
-                        logger.error("SSE connection error: $error)", metadata: ["error": .string("\(error)")])
+                        logger.error("SSE connection error: \(error)")
                         // Wait before retrying
                         try? await Task.sleep(for: .seconds(1))
                     }
@@ -506,8 +509,38 @@ public actor HTTPClientTransport: Transport {
     /// 4. Clients MUST support both SSE and HTTP long-polling
     ///
     /// - Throws: MCPError for connection failures
+    private enum StreamableHTTPTransportError: Error {
+        case methodNotAllowed
+    }
+    
+    private let HTTP_OK = Int(200)
+    private let HTTP_METHOD_NOT_ALLOWED = Int(405)
+    
     private func connectToEventStream() async throws {
         guard isConnected else { return }
+        
+        // Wait for initial session ID if it's not available yet
+        if self.sessionID == nil && self.initialSessionIDSignalTask != nil {
+            logger.trace("Waiting for initial session ID for SSE event stream...")
+            do {
+                try await withThrowingTaskGroup(of: Void.self) { group in
+                    group.addTask { [weak self] in
+                        await self?.initialSessionIDSignalTask?.value
+                    }
+                    group.addTask { [weak self] in
+                        guard let timeout = self?.sseInitializationTimeout else {
+                            return
+                        }
+                        try await Task.sleep(for: .seconds(timeout))
+                    }
+                    try await group.next()
+                    group.cancelAll()
+                }
+                logger.trace("Initial session ID signal received or timed out")
+            } catch {
+                logger.warning("Error while waiting for initial session ID: \(error)")
+            }
+        }
         
         // Establish connection and get response
         let (stream, httpResponse) = try await establishEventConnection()

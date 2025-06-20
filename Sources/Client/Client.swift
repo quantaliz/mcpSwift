@@ -525,7 +525,14 @@ public actor Client {
         // If the transport is an HTTPClientTransport and it's configured for streaming,
         // tell it to start the SSE listener now that initialization is complete.
         if let httpClientTransport = self.connection as? HTTPClientTransport, httpClientTransport.streaming {
-            try await httpClientTransport.startStreaming()
+            // Start in a detached task to avoid delaying initialization
+            Task {
+                do {
+                    try await httpClientTransport.startStreaming()
+                } catch {
+                    logger?.error("SSE streaming start failed: \(error)")
+                }
+            }
         }
 
         try await notify(InitializedNotification.message())
