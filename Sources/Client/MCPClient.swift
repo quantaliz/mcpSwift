@@ -641,11 +641,11 @@ public actor MCPClient {
         return (content: result.content, isError: result.isError)
     }
 
-    // MARK: - Sampling
+    // MARK: - MCPSampling
 
     /// Register a handler for sampling requests from servers
     ///
-    /// Sampling allows servers to request LLM completions through the client,
+    /// MCPSampling allows servers to request LLM completions through the client,
     /// enabling sophisticated agentic behaviors while maintaining human-in-the-loop control.
     ///
     /// The sampling flow follows these steps:

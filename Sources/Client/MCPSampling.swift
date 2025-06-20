@@ -14,7 +14,7 @@ import Foundation
 /// security and privacy.
 ///
 /// - SeeAlso: https://modelcontextprotocol.io/docs/concepts/sampling#how-sampling-works
-public enum Sampling {
+public enum MCPSampling {
     /// A message in the conversation history.
     public struct Message: Hashable, Codable, Sendable {
         /// The message role
@@ -121,7 +121,7 @@ public enum Sampling {
 
 // MARK: - Codable
 
-extension Sampling.Message.Content: Codable {
+extension MCPSampling.Message.Content: Codable {
     private enum CodingKeys: String, CodingKey {
         case type, text, data, mimeType
     }
@@ -162,7 +162,7 @@ extension Sampling.Message.Content: Codable {
 
 // MARK: - ExpressibleByStringLiteral
 
-extension Sampling.Message.Content: ExpressibleByStringLiteral {
+extension MCPSampling.Message.Content: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
         self = .text(value)
     }
@@ -170,7 +170,7 @@ extension Sampling.Message.Content: ExpressibleByStringLiteral {
 
 // MARK: - ExpressibleByStringInterpolation
 
-extension Sampling.Message.Content: ExpressibleByStringInterpolation {
+extension MCPSampling.Message.Content: ExpressibleByStringInterpolation {
     public init(stringInterpolation: DefaultStringInterpolation) {
         self = .text(String(stringInterpolation: stringInterpolation))
     }
@@ -185,13 +185,13 @@ public enum CreateSamplingMessage: MCPMethod {
 
     public struct Parameters: Hashable, Codable, Sendable {
         /// The conversation history to send to the LLM
-        public let messages: [Sampling.Message]
+        public let messages: [MCPSampling.Message]
         /// Model selection preferences
-        public let modelPreferences: Sampling.ModelPreferences?
+        public let modelPreferences: MCPSampling.ModelPreferences?
         /// Optional system prompt
         public let systemPrompt: String?
         /// What MCP context to include
-        public let includeContext: Sampling.ContextInclusion?
+        public let includeContext: MCPSampling.ContextInclusion?
         /// Controls randomness (0.0 to 1.0)
         public let temperature: Double?
         /// Maximum tokens to generate
@@ -202,10 +202,10 @@ public enum CreateSamplingMessage: MCPMethod {
         public let metadata: [String: MCPValue]?
 
         public init(
-            messages: [Sampling.Message],
-            modelPreferences: Sampling.ModelPreferences? = nil,
+            messages: [MCPSampling.Message],
+            modelPreferences: MCPSampling.ModelPreferences? = nil,
             systemPrompt: String? = nil,
-            includeContext: Sampling.ContextInclusion? = nil,
+            includeContext: MCPSampling.ContextInclusion? = nil,
             temperature: Double? = nil,
             maxTokens: Int,
             stopSequences: [String]? = nil,
@@ -226,17 +226,17 @@ public enum CreateSamplingMessage: MCPMethod {
         /// Name of the model used
         public let model: String
         /// Why sampling stopped
-        public let stopReason: Sampling.StopReason?
+        public let stopReason: MCPSampling.StopReason?
         /// The role of the completion
-        public let role: Sampling.Message.Role
+        public let role: MCPSampling.Message.Role
         /// The completion content
-        public let content: Sampling.Message.Content
+        public let content: MCPSampling.Message.Content
 
         public init(
             model: String,
-            stopReason: Sampling.StopReason? = nil,
-            role: Sampling.Message.Role,
-            content: Sampling.Message.Content
+            stopReason: MCPSampling.StopReason? = nil,
+            role: MCPSampling.Message.Role,
+            content: MCPSampling.Message.Content
         ) {
             self.model = model
             self.stopReason = stopReason

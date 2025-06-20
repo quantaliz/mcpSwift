@@ -1,5 +1,5 @@
 //
-//  SamplingTests.swift
+//  MCPSamplingTests.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -21,18 +21,18 @@ import class Foundation.JSONEncoder
     @preconcurrency import SystemPackage
 #endif
 
-@Suite("Sampling Tests")
-struct SamplingTests {
-    @Test("Sampling.MCPMessage encoding and decoding")
+@Suite("MCPSampling Tests")
+struct MCPSamplingTests {
+    @Test("MCPSampling.MCPMessage encoding and decoding")
     func testSamplingMessageCoding() throws {
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
         // Test text content
-        let textMessage: Sampling.Message = .user("Hello, world!")
+        let textMessage: MCPSampling.Message = .user("Hello, world!")
 
         let textData = try encoder.encode(textMessage)
-        let decodedTextMessage = try decoder.decode(Sampling.Message.self, from: textData)
+        let decodedTextMessage = try decoder.decode(MCPSampling.Message.self, from: textData)
 
         #expect(decodedTextMessage.role == .user)
         if case .text(let text) = decodedTextMessage.content {
@@ -42,11 +42,11 @@ struct SamplingTests {
         }
 
         // Test image content
-        let imageMessage: Sampling.Message = .assistant(
+        let imageMessage: MCPSampling.Message = .assistant(
             .image(data: "base64imagedata", mimeType: "image/png"))
 
         let imageData = try encoder.encode(imageMessage)
-        let decodedImageMessage = try decoder.decode(Sampling.Message.self, from: imageData)
+        let decodedImageMessage = try decoder.decode(MCPSampling.Message.self, from: imageData)
 
         #expect(decodedImageMessage.role == .assistant)
         if case .image(let data, let mimeType) = decodedImageMessage.content {
@@ -62,10 +62,10 @@ struct SamplingTests {
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
-        let preferences = Sampling.ModelPreferences(
+        let preferences = MCPSampling.ModelPreferences(
             hints: [
-                Sampling.ModelPreferences.Hint(name: "claude-4"),
-                Sampling.ModelPreferences.Hint(name: "gpt-4.1")
+                MCPSampling.ModelPreferences.Hint(name: "claude-4"),
+                MCPSampling.ModelPreferences.Hint(name: "gpt-4.1")
             ],
             costPriority: 0.8,
             speedPriority: 0.3,
@@ -73,7 +73,7 @@ struct SamplingTests {
         )
 
         let data = try encoder.encode(preferences)
-        let decoded = try decoder.decode(Sampling.ModelPreferences.self, from: data)
+        let decoded = try decoder.decode(MCPSampling.ModelPreferences.self, from: data)
 
         #expect(decoded.hints?.count == 2)
         #expect(decoded.hints?[0].name == "claude-4")
@@ -88,11 +88,11 @@ struct SamplingTests {
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
-        let contexts: [Sampling.ContextInclusion] = [.none, .thisServer, .allServers]
+        let contexts: [MCPSampling.ContextInclusion] = [.none, .thisServer, .allServers]
 
         for context in contexts {
             let data = try encoder.encode(context)
-            let decoded = try decoder.decode(Sampling.ContextInclusion.self, from: data)
+            let decoded = try decoder.decode(MCPSampling.ContextInclusion.self, from: data)
             #expect(decoded == context)
         }
     }
@@ -102,11 +102,11 @@ struct SamplingTests {
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
-        let reasons: [Sampling.StopReason] = [.endTurn, .stopSequence, .maxTokens]
+        let reasons: [MCPSampling.StopReason] = [.endTurn, .stopSequence, .maxTokens]
 
         for reason in reasons {
             let data = try encoder.encode(reason)
-            let decoded = try decoder.decode(Sampling.StopReason.self, from: data)
+            let decoded = try decoder.decode(MCPSampling.StopReason.self, from: data)
             #expect(decoded == reason)
         }
     }
@@ -116,13 +116,13 @@ struct SamplingTests {
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
-        let messages: [Sampling.Message] = [
+        let messages: [MCPSampling.Message] = [
             .user("What is the weather like?"),
             .assistant("I need to check the weather for you.")
         ]
 
-        let modelPreferences = Sampling.ModelPreferences(
-            hints: [Sampling.ModelPreferences.Hint(name: "claude-4-sonnet")],
+        let modelPreferences = MCPSampling.ModelPreferences(
+            hints: [MCPSampling.ModelPreferences.Hint(name: "claude-4-sonnet")],
             costPriority: 0.5,
             speedPriority: 0.7,
             intelligencePriority: 0.9
@@ -182,7 +182,7 @@ struct SamplingTests {
 
     @Test("CreateMessage request creation")
     func testCreateMessageRequest() throws {
-        let messages: [Sampling.Message] = [
+        let messages: [MCPSampling.Message] = [
             .user("Hello")
         ]
 
@@ -263,7 +263,7 @@ struct SamplingTests {
         try await server.start(transport: transport)
 
         // Test that server can attempt to request sampling
-        let messages: [Sampling.Message] = [
+        let messages: [MCPSampling.Message] = [
             .user("Test message")
         ]
 
@@ -290,13 +290,13 @@ struct SamplingTests {
         await server.stop()
     }
 
-    @Test("Sampling message content JSON format")
+    @Test("MCPSampling message content JSON format")
     func testSamplingMessageContentJSONFormat() throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
 
         // Test text content JSON format
-        let textContent: Sampling.Message.Content = .text("Hello")
+        let textContent: MCPSampling.Message.Content = .text("Hello")
         let textData = try encoder.encode(textContent)
         let textJSON = String(data: textData, encoding: .utf8)!
 
@@ -304,7 +304,7 @@ struct SamplingTests {
         #expect(textJSON.contains("\"text\":\"Hello\""))
 
         // Test image content JSON format
-        let imageContent: Sampling.Message.Content = .image(
+        let imageContent: MCPSampling.Message.Content = .image(
             data: "base64data", mimeType: "image/png")
         let imageData = try encoder.encode(imageContent)
         let imageJSON = String(data: imageData, encoding: .utf8)!
@@ -314,10 +314,10 @@ struct SamplingTests {
         #expect(imageJSON.contains("\"mimeType\":\"image\\/png\""))
     }
 
-    @Test("UnitInterval in Sampling.ModelPreferences")
+    @Test("UnitInterval in MCPSampling.ModelPreferences")
     func testUnitIntervalInModelPreferences() throws {
-        // Test that UnitInterval validation works in Sampling.ModelPreferences
-        let validPreferences = Sampling.ModelPreferences(
+        // Test that UnitInterval validation works in MCPSampling.ModelPreferences
+        let validPreferences = MCPSampling.ModelPreferences(
             costPriority: 0.5,
             speedPriority: 1.0,
             intelligencePriority: 0.0
@@ -332,7 +332,7 @@ struct SamplingTests {
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(validPreferences)
-        let decoded = try decoder.decode(Sampling.ModelPreferences.self, from: data)
+        let decoded = try decoder.decode(MCPSampling.ModelPreferences.self, from: data)
 
         #expect(decoded.costPriority?.doubleValue == 0.5)
         #expect(decoded.speedPriority?.doubleValue == 1.0)
@@ -342,7 +342,7 @@ struct SamplingTests {
     @Test("MCPMessage factory methods")
     func testMessageFactoryMethods() throws {
         // Test user message factory method
-        let userMessage: Sampling.Message = .user("Hello, world!")
+        let userMessage: MCPSampling.Message = .user("Hello, world!")
         #expect(userMessage.role == .user)
         if case .text(let text) = userMessage.content {
             #expect(text == "Hello, world!")
@@ -351,7 +351,7 @@ struct SamplingTests {
         }
 
         // Test assistant message factory method
-        let assistantMessage: Sampling.Message = .assistant("Hi there!")
+        let assistantMessage: MCPSampling.Message = .assistant("Hi there!")
         #expect(assistantMessage.role == .assistant)
         if case .text(let text) = assistantMessage.content {
             #expect(text == "Hi there!")
@@ -360,7 +360,7 @@ struct SamplingTests {
         }
 
         // Test with image content
-        let imageMessage: Sampling.Message = .user(
+        let imageMessage: MCPSampling.Message = .user(
             .image(data: "base64data", mimeType: "image/png"))
         #expect(imageMessage.role == .user)
         if case .image(let data, let mimeType) = imageMessage.content {
@@ -374,7 +374,7 @@ struct SamplingTests {
     @Test("Content ExpressibleByStringLiteral")
     func testContentExpressibleByStringLiteral() throws {
         // Test string literal assignment
-        let content: Sampling.Message.Content = "Hello from string literal"
+        let content: MCPSampling.Message.Content = "Hello from string literal"
 
         if case .text(let text) = content {
             #expect(text == "Hello from string literal")
@@ -383,7 +383,7 @@ struct SamplingTests {
         }
 
         // Test in message creation
-        let message: Sampling.Message = .user("Direct string literal")
+        let message: MCPSampling.Message = .user("Direct string literal")
         if case .text(let text) = message.content {
             #expect(text == "Direct string literal")
         } else {
@@ -391,7 +391,7 @@ struct SamplingTests {
         }
 
         // Test in array context
-        let messages: [Sampling.Message] = [
+        let messages: [MCPSampling.Message] = [
             .user("First message"),
             .assistant("Second message"),
             .user("Third message")
@@ -410,7 +410,7 @@ struct SamplingTests {
         let location = "San Francisco"
 
         // Test string interpolation
-        let content: Sampling.Message.Content =
+        let content: MCPSampling.Message.Content =
             "Hello \(userName), the temperature in \(location) is \(temperature)°F"
 
         if case .text(let text) = content {
@@ -420,7 +420,7 @@ struct SamplingTests {
         }
 
         // Test in message creation with interpolation
-        let message = Sampling.Message.user(
+        let message = MCPSampling.Message.user(
             "Welcome \(userName)! Today's weather in \(location) is \(temperature)°F")
         if case .text(let text) = message.content {
             #expect(text == "Welcome Alice! Today's weather in San Francisco is 72°F")
@@ -431,7 +431,7 @@ struct SamplingTests {
         // Test complex interpolation
         let items = ["apples", "bananas", "oranges"]
         let count = items.count
-        let listMessage: Sampling.Message = .assistant(
+        let listMessage: MCPSampling.Message = .assistant(
             "You have \(count) items: \(items.joined(separator: ", "))")
 
         if case .text(let text) = listMessage.content {
@@ -448,7 +448,7 @@ struct SamplingTests {
         let issueType = "delivery delay"
 
         // Test user message with interpolation
-        let userMessage: Sampling.Message = .user(
+        let userMessage: MCPSampling.Message = .user(
             "Hi, I'm \(customerName) and I have an issue with order \(orderNumber)")
         #expect(userMessage.role == .user)
         if case .text(let text) = userMessage.content {
@@ -458,7 +458,7 @@ struct SamplingTests {
         }
 
         // Test assistant message with interpolation
-        let assistantMessage: Sampling.Message = .assistant(
+        let assistantMessage: MCPSampling.Message = .assistant(
             "Hello \(customerName), I can help you with your \(issueType) issue for order \(orderNumber)"
         )
         #expect(assistantMessage.role == .assistant)
@@ -472,7 +472,7 @@ struct SamplingTests {
         }
 
         // Test in conversation array
-        let conversation: [Sampling.Message] = [
+        let conversation: [MCPSampling.Message] = [
             .user("Hello, I'm \(customerName)"),
             .assistant("Hi \(customerName), how can I help you today?"),
             .user("I have an issue with order \(orderNumber) - it's a \(issueType)"),
@@ -496,7 +496,7 @@ struct SamplingTests {
         // Test various ergonomic usage patterns enabled by the new API
 
         // Pattern 1: Simple conversation
-        let simpleConversation: [Sampling.Message] = [
+        let simpleConversation: [MCPSampling.Message] = [
             .user("What's the weather like?"),
             .assistant("I'd be happy to help you check the weather!"),
             .user("Thanks!")
@@ -508,7 +508,7 @@ struct SamplingTests {
         let price = 199.99
         let discount = 20
 
-        let salesConversation: [Sampling.Message] = [
+        let salesConversation: [MCPSampling.Message] = [
             .user("Tell me about the \(productName)"),
             .assistant("The \(productName) is priced at $\(String(format: "%.2f", price))"),
             .user("Do you have any discounts?"),
@@ -519,7 +519,7 @@ struct SamplingTests {
         #expect(salesConversation.count == 4)
 
         // Pattern 3: Mixed content types
-        let mixedContent: [Sampling.Message] = [
+        let mixedContent: [MCPSampling.Message] = [
             .user("Can you analyze this image?"),
             .assistant(.image(data: "analysis_chart_data", mimeType: "image/png")),
             .user("What does it show?"),
@@ -542,7 +542,7 @@ struct SamplingTests {
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(simpleConversation)
-        let decoded = try decoder.decode([Sampling.Message].self, from: data)
+        let decoded = try decoder.decode([MCPSampling.Message].self, from: data)
 
         #expect(decoded.count == 3)
         #expect(decoded[0].role == .user)
@@ -551,8 +551,8 @@ struct SamplingTests {
     }
 }
 
-@Suite("Sampling Integration Tests")
-struct SamplingIntegrationTests {
+@Suite("MCPSampling Integration Tests")
+struct MCPSamplingIntegrationTests {
     @Test(
         .timeLimit(.minutes(1))
     )
@@ -645,16 +645,16 @@ struct SamplingIntegrationTests {
         try await server.start(transport: transport)
 
         // Test sampling request with comprehensive parameters
-        let messages: [Sampling.Message] = [
+        let messages: [MCPSampling.Message] = [
             .user("Analyze the following data and provide insights:"),
             .user("Sales data: Q1: $100k, Q2: $150k, Q3: $200k, Q4: $180k"),
             .user("Marketing data: Q1: $50k, Q2: $75k, Q3: $100k, Q4: $90k")
         ]
 
-        let modelPreferences = Sampling.ModelPreferences(
+        let modelPreferences = MCPSampling.ModelPreferences(
             hints: [
-                Sampling.ModelPreferences.Hint(name: "claude-4-sonnet"),
-                Sampling.ModelPreferences.Hint(name: "gpt-4.1")
+                MCPSampling.ModelPreferences.Hint(name: "claude-4-sonnet"),
+                MCPSampling.ModelPreferences.Hint(name: "gpt-4.1")
             ],
             costPriority: 0.3,
             speedPriority: 0.7,
@@ -700,9 +700,9 @@ struct SamplingIntegrationTests {
     )
     func testSamplingMessageTypes() async throws {
         // Test comprehensive message content types
-        let textMessage: Sampling.Message = .user("What do you see in this data?")
+        let textMessage: MCPSampling.Message = .user("What do you see in this data?")
 
-        let imageMessage: Sampling.Message = .user(
+        let imageMessage: MCPSampling.Message = .user(
             .image(
                 data:
                     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
@@ -715,7 +715,7 @@ struct SamplingIntegrationTests {
 
         // Test text message
         let textData = try encoder.encode(textMessage)
-        let decodedTextMessage = try decoder.decode(Sampling.Message.self, from: textData)
+        let decodedTextMessage = try decoder.decode(MCPSampling.Message.self, from: textData)
         #expect(decodedTextMessage.role == .user)
         if case .text(let text) = decodedTextMessage.content {
             #expect(text == "What do you see in this data?")
@@ -725,7 +725,7 @@ struct SamplingIntegrationTests {
 
         // Test image message
         let imageData = try encoder.encode(imageMessage)
-        let decodedImageMessage = try decoder.decode(Sampling.Message.self, from: imageData)
+        let decodedImageMessage = try decoder.decode(MCPSampling.Message.self, from: imageData)
         #expect(decodedImageMessage.role == .user)
         if case .image(let data, let mimeType) = decodedImageMessage.content {
             #expect(data.contains("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ"))
@@ -806,7 +806,7 @@ struct SamplingIntegrationTests {
         try await server.start(transport: transport)
 
         // Test sampling request on server without sampling capability
-        let messages: [Sampling.Message] = [
+        let messages: [MCPSampling.Message] = [
             .user("Test message")
         ]
 
@@ -839,11 +839,11 @@ struct SamplingIntegrationTests {
     )
     func testSamplingParameterValidation() async throws {
         // Test parameter validation and edge cases
-        let validMessages: [Sampling.Message] = [
+        let validMessages: [MCPSampling.Message] = [
             .user("Valid message")
         ]
 
-        _ = [Sampling.Message]()  // Test empty messages array.
+        _ = [MCPSampling.Message]()  // Test empty messages array.
 
         // Test with valid parameters
         let validParams = CreateSamplingMessage.Parameters(
@@ -856,8 +856,8 @@ struct SamplingIntegrationTests {
         // Test with comprehensive parameters
         let comprehensiveParams = CreateSamplingMessage.Parameters(
             messages: validMessages,
-            modelPreferences: Sampling.ModelPreferences(
-                hints: [Sampling.ModelPreferences.Hint(name: "claude-4")],
+            modelPreferences: MCPSampling.ModelPreferences(
+                hints: [MCPSampling.ModelPreferences.Hint(name: "claude-4")],
                 costPriority: 0.5,
                 speedPriority: 0.8,
                 intelligencePriority: 0.9
@@ -906,7 +906,7 @@ struct SamplingIntegrationTests {
         // Test realistic sampling workflow scenarios
 
         // Scenario 1: Data Analysis Request
-        let dataAnalysisMessages: [Sampling.Message] = [
+        let dataAnalysisMessages: [MCPSampling.Message] = [
             .user("Please analyze the following customer feedback data:"),
             .user(
                 """
@@ -920,8 +920,8 @@ struct SamplingIntegrationTests {
 
         let dataAnalysisParams = CreateSamplingMessage.Parameters(
             messages: dataAnalysisMessages,
-            modelPreferences: Sampling.ModelPreferences(
-                hints: [Sampling.ModelPreferences.Hint(name: "claude-4-sonnet")],
+            modelPreferences: MCPSampling.ModelPreferences(
+                hints: [MCPSampling.ModelPreferences.Hint(name: "claude-4-sonnet")],
                 speedPriority: 0.3,
                 intelligencePriority: 0.9
             ),
@@ -934,15 +934,15 @@ struct SamplingIntegrationTests {
         )
 
         // Scenario 2: Creative Content Generation
-        let creativeMessages: [Sampling.Message] = [
+        let creativeMessages: [MCPSampling.Message] = [
             .user(
                 "Write a compelling product description for a new smart home device.")
         ]
 
         let creativeParams = CreateSamplingMessage.Parameters(
             messages: creativeMessages,
-            modelPreferences: Sampling.ModelPreferences(
-                hints: [Sampling.ModelPreferences.Hint(name: "gpt-4.1")],
+            modelPreferences: MCPSampling.ModelPreferences(
+                hints: [MCPSampling.ModelPreferences.Hint(name: "gpt-4.1")],
                 costPriority: 0.4,
                 speedPriority: 0.6,
                 intelligencePriority: 0.8

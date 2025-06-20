@@ -335,10 +335,10 @@ public actor Server {
     /// - Throws: MCPError if the request fails
     /// - SeeAlso: https://modelcontextprotocol.io/docs/concepts/sampling#how-sampling-works
     public func requestSampling(
-        messages: [Sampling.Message],
-        modelPreferences: Sampling.ModelPreferences? = nil,
+        messages: [MCPSampling.Message],
+        modelPreferences: MCPSampling.ModelPreferences? = nil,
         systemPrompt: String? = nil,
-        includeContext: Sampling.ContextInclusion? = nil,
+        includeContext: MCPSampling.ContextInclusion? = nil,
         temperature: Double? = nil,
         maxTokens: Int,
         stopSequences: [String]? = nil,
