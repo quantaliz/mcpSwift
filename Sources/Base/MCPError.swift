@@ -1,5 +1,5 @@
 //
-//  Error.swift
+//  MCPError.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -8,12 +8,7 @@
 //
 
 import Foundation
-
-#if canImport(System)
-    import System
-#else
-    @preconcurrency import SystemPackage
-#endif
+import System
 
 /// A model context protocol error.
 public enum MCPError: Swift.Error, Sendable {
@@ -47,15 +42,9 @@ public enum MCPError: Swift.Error, Sendable {
 
     /// Check if an error represents a "resource temporarily unavailable" condition
     public static func isResourceTemporarilyUnavailable(_ error: Swift.Error) -> Bool {
-        #if canImport(System)
-            if let errno = error as? System.Errno, errno == .resourceTemporarilyUnavailable {
-                return true
-            }
-        #else
-            if let errno = error as? SystemPackage.Errno, errno == .resourceTemporarilyUnavailable {
-                return true
-            }
-        #endif
+        if let errno = error as? System.Errno, errno == .resourceTemporarilyUnavailable {
+            return true
+        }
         return false
     }
 }
@@ -252,12 +241,3 @@ extension MCPError: Hashable {
         }
     }
 }
-
-// MARK: -
-
-/// This is provided to allow existing code that uses `MCP.Error` to continue
-/// to work without modification.
-///
-/// The MCPError type is now the recommended way to handle errors in MCP.
-@available(*, deprecated, renamed: "MCPError", message: "Use MCPError instead of MCP.Error")
-public typealias Error = MCPError

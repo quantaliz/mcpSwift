@@ -156,7 +156,7 @@ public actor Server {
     /// The protocol version
     private var protocolVersion: String?
     /// The list of subscriptions
-    private var subscriptions: [String: Set<ID>] = [:]
+    private var subscriptions: [String: Set<MCPID>] = [:]
     /// The task for the message handling loop
     private var task: Task<Void, Never>?
 
@@ -193,7 +193,7 @@ public actor Server {
                 for try await data in stream {
                     if Task.isCancelled { break }  // Check cancellation inside loop
 
-                    var requestID: ID?
+                    var requestID: MCPID?
                     do {
                         // Attempt to decode as batch first, then as individual request or notification
                         let decoder = JSONDecoder()

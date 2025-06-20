@@ -1,5 +1,5 @@
 //
-//  ID.swift
+//  MCPID.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -10,22 +10,22 @@
 import struct Foundation.UUID
 
 /// A unique identifier for a request.
-public enum ID: Hashable, Sendable {
+public enum MCPID: Hashable, Sendable {
     /// A string ID.
     case string(String)
 
     /// A number ID.
     case number(Int)
 
-    /// Generates a random string ID.
-    public static var random: ID {
+    /// Generates a random string MCPID.
+    public static var random: MCPID {
         return .string(UUID().uuidString)
     }
 }
 
 // MARK: - ExpressibleByStringLiteral
 
-extension ID: ExpressibleByStringLiteral {
+extension MCPID: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
         self = .string(value)
     }
@@ -33,7 +33,7 @@ extension ID: ExpressibleByStringLiteral {
 
 // MARK: - ExpressibleByIntegerLiteral
 
-extension ID: ExpressibleByIntegerLiteral {
+extension MCPID: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int) {
         self = .number(value)
     }
@@ -41,7 +41,7 @@ extension ID: ExpressibleByIntegerLiteral {
 
 // MARK: - CustomStringConvertible
 
-extension ID: CustomStringConvertible {
+extension MCPID: CustomStringConvertible {
     public var description: String {
         switch self {
         case .string(let str): return str
@@ -52,7 +52,7 @@ extension ID: CustomStringConvertible {
 
 // MARK: - Codable
 
-extension ID: Codable {
+extension MCPID: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if let string = try? container.decode(String.self) {

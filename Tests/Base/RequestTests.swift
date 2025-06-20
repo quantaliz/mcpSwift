@@ -32,7 +32,7 @@ struct RequestTests {
 
     @Test("Request initialization with parameters")
     func testRequestInitialization() throws {
-        let id: ID = 1
+        let id: MCPID = 1
         let params = CallTool.Parameters(name: "test-tool")
         let request = Request<CallTool>(id: id, method: CallTool.name, params: params)
 

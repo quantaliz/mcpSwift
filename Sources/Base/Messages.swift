@@ -46,30 +46,30 @@ struct AnyMethod: Method, Sendable {
 }
 
 extension Method where Parameters == Empty {
-    public static func request(id: ID = .random) -> Request<Self> {
+    public static func request(id: MCPID = .random) -> Request<Self> {
         Request(id: id, method: name, params: Empty())
     }
 }
 
 extension Method where Result == Empty {
-    public static func response(id: ID) -> Response<Self> {
+    public static func response(id: MCPID) -> Response<Self> {
         Response(id: id, result: Empty())
     }
 }
 
 extension Method {
     /// Create a request with the given parameters.
-    public static func request(id: ID = .random, _ parameters: Self.Parameters) -> Request<Self> {
+    public static func request(id: MCPID = .random, _ parameters: Self.Parameters) -> Request<Self> {
         Request(id: id, method: name, params: parameters)
     }
 
     /// Create a response with the given result.
-    public static func response(id: ID, result: Self.Result) -> Response<Self> {
+    public static func response(id: MCPID, result: Self.Result) -> Response<Self> {
         Response(id: id, result: result)
     }
 
     /// Create a response with the given error.
-    public static func response(id: ID, error: MCPError) -> Response<Self> {
+    public static func response(id: MCPID, error: MCPError) -> Response<Self> {
         Response(id: id, error: error)
     }
 }
@@ -79,13 +79,13 @@ extension Method {
 /// A request message.
 public struct Request<M: Method>: Hashable, Identifiable, Codable, Sendable {
     /// The request ID.
-    public let id: ID
+    public let id: MCPID
     /// The method name.
     public let method: String
     /// The request parameters.
     public let params: M.Parameters
 
-    init(id: ID = .random, method: String, params: M.Parameters) {
+    init(id: MCPID = .random, method: String, params: M.Parameters) {
         self.id = id
         self.method = method
         self.params = params
@@ -201,16 +201,16 @@ final class TypedRequestHandler<M: Method>: RequestHandlerBox, @unchecked Sendab
 /// A response message.
 public struct Response<M: Method>: Hashable, Identifiable, Codable, Sendable {
     /// The response ID.
-    public let id: ID
+    public let id: MCPID
     /// The response result.
     public let result: Swift.Result<M.Result, MCPError>
 
-    public init(id: ID, result: M.Result) {
+    public init(id: MCPID, result: M.Result) {
         self.id = id
         self.result = .success(result)
     }
 
-    public init(id: ID, error: MCPError) {
+    public init(id: MCPID, error: MCPError) {
         self.id = id
         self.result = .failure(error)
     }

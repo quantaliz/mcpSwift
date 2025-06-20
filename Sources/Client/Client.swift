@@ -159,8 +159,8 @@ public actor Client {
         }
     }
 
-    /// A dictionary of type-erased pending requests, keyed by request ID
-    private var pendingRequests: [ID: AnyPendingRequest] = [:]
+    /// A dictionary of type-erased pending requests, keyed by request MCP's ID
+    private var pendingRequests: [MCPID: AnyPendingRequest] = [:]
     // Add reusable JSON encoder/decoder
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
@@ -335,14 +335,14 @@ public actor Client {
     }
 
     private func addPendingRequest<T: Sendable & Decodable>(
-        id: ID,
+        id: MCPID,
         continuation: CheckedContinuation<T, Swift.Error>,
         type: T.Type  // Keep type for AnyPendingRequest internal logic
     ) {
         pendingRequests[id] = AnyPendingRequest(PendingRequest(continuation: continuation))
     }
 
-    private func removePendingRequest(id: ID) -> AnyPendingRequest? {
+    private func removePendingRequest(id: MCPID) -> AnyPendingRequest? {
         return pendingRequests.removeValue(forKey: id)
     }
 
@@ -682,7 +682,7 @@ public actor Client {
             "Processing response",
             metadata: ["id": "\(response.id)"])
 
-        // Attempt to remove the pending request using the response ID.
+        // Attempt to remove the pending request using the response MCPID.
         // Resume with the response only if it hadn't yet been removed.
         if let removedRequest = self.removePendingRequest(id: response.id) {
             // If we successfully removed it, resume its continuation.
@@ -759,10 +759,10 @@ public actor Client {
                     pendingRequest.resume(throwing: error)
                 }
             } else {
-                // If removal failed, it means the request ID was not found (or already handled).
+                // If removal failed, it means the request MCPID was not found (or already handled).
                 // Log a warning.
                 await logger?.warning(
-                    "Received response in batch for unknown or already handled request ID",
+                    "Received response in batch for unknown or already handled request MCP's ID",
                     metadata: ["id": "\(response.id)"]
                 )
             }

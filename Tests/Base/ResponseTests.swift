@@ -32,7 +32,7 @@ struct ResponseTests {
 
     @Test("Success response initialization and encoding")
     func testSuccessResponse() throws {
-        let id: ID = "test-id"
+        let id: MCPID = "test-id"
         let result = TestMethod.Result(success: true)
         let response = Response<TestMethod>(id: id, result: result)
 
@@ -51,7 +51,7 @@ struct ResponseTests {
 
     @Test("Error response initialization and encoding")
     func testErrorResponse() throws {
-        let id: ID = "test-id"
+        let id: MCPID = "test-id"
         let error = MCPError.parseError(nil)
         let response = Response<TestMethod>(id: id, error: error)
 
@@ -73,7 +73,7 @@ struct ResponseTests {
 
     @Test("Error response with detail")
     func testErrorResponseWithDetail() throws {
-        let id: ID = "test-id"
+        let id: MCPID = "test-id"
         let error = MCPError.parseError("Invalid syntax")
         let response = Response<TestMethod>(id: id, error: error)
 
