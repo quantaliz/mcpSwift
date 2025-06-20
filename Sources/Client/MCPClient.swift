@@ -1,5 +1,5 @@
 //
-//  Client.swift
+//  MCPClient.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -15,7 +15,7 @@ import class Foundation.JSONDecoder
 import class Foundation.JSONEncoder
 
 /// Model Context Protocol client
-public actor Client {
+public actor MCPClient {
     /// The client configuration
     public struct Configuration: Hashable, Codable, Sendable {
         /// The default configuration.
@@ -97,14 +97,14 @@ public actor Client {
     }
 
     /// The client information
-    private let clientInfo: Client.Info
+    private let clientInfo: MCPClient.Info
     /// The client name
     public nonisolated var name: String { clientInfo.name }
     /// The client version
     public nonisolated var version: String { clientInfo.version }
 
     /// The client capabilities
-    public var capabilities: Client.Capabilities
+    public var capabilities: MCPClient.Capabilities
     /// The client configuration
     public var configuration: Configuration
 
@@ -171,7 +171,7 @@ public actor Client {
         version: String,
         configuration: Configuration = .default
     ) {
-        self.clientInfo = Client.Info(name: name, version: version)
+        self.clientInfo = MCPClient.Info(name: name, version: version)
         self.capabilities = Capabilities()
         self.configuration = configuration
     }
@@ -352,12 +352,12 @@ public actor Client {
     /// A batch of requests.
     ///
     /// Objects of this type are passed as an argument to the closure
-    /// of the ``Client/withBatch(_:)`` method.
+    /// of the ``MCPClient/withBatch(_:)`` method.
     public actor Batch {
-        unowned let client: Client
+        unowned let client: MCPClient
         var requests: [AnyMCPRequest] = []
 
-        init(client: Client) {
+        init(client: MCPClient) {
             self.client = client
         }
 
@@ -466,7 +466,7 @@ public actor Client {
             throw MCPError.internalError("Client connection not initialized")
         }
 
-        // Create Batch actor, passing self (Client)
+        // Create Batch actor, passing self (MCPClient)
         let batch = Batch(client: self)
 
         // Populate the batch actor by calling the user's closure.
@@ -650,10 +650,10 @@ public actor Client {
     ///
     /// The sampling flow follows these steps:
     /// 1. Server sends a `sampling/createMessage` request to the client
-    /// 2. Client reviews the request and can modify it (via this handler)
-    /// 3. Client samples from an LLM (via this handler)
-    /// 4. Client reviews the completion (via this handler)
-    /// 5. Client returns the result to the server
+    /// 2. MCPClient reviews the request and can modify it (via this handler)
+    /// 3. MCPClient samples from an LLM (via this handler)
+    /// 4. MCPClient reviews the completion (via this handler)
+    /// 5. MCPClient returns the result to the server
     ///
     /// - Parameter handler: A closure that processes sampling requests and returns completions
     /// - Returns: Self for method chaining

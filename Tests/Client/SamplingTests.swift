@@ -215,9 +215,9 @@ struct SamplingTests {
         #expect(decoded.sampling != nil)
     }
 
-    @Test("Client capabilities include sampling")
+    @Test("MCPClient capabilities include sampling")
     func testClientCapabilitiesIncludeSampling() throws {
-        let capabilities = Client.Capabilities(
+        let capabilities = MCPClient.Capabilities(
             sampling: .init()
         )
 
@@ -227,14 +227,14 @@ struct SamplingTests {
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(capabilities)
-        let decoded = try decoder.decode(Client.Capabilities.self, from: data)
+        let decoded = try decoder.decode(MCPClient.Capabilities.self, from: data)
 
         #expect(decoded.sampling != nil)
     }
 
-    @Test("Client sampling handler registration")
+    @Test("MCPClient sampling handler registration")
     func testClientSamplingHandlerRegistration() async throws {
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         // Test that sampling handler can be registered
         let handlerClient = await client.withSamplingHandler { _ in
@@ -586,8 +586,8 @@ struct SamplingIntegrationTests {
             )
         )
 
-        // Client (capabilities will be set during initialization)
-        let client = Client(
+        // MCPClient (capabilities will be set during initialization)
+        let client = MCPClient(
             name: "SamplingTestClient",
             version: "1.0"
         )
@@ -607,7 +607,7 @@ struct SamplingIntegrationTests {
         .timeLimit(.minutes(1))
     )
     func testSamplingHandlerRegistration() async throws {
-        let client = Client(
+        let client = MCPClient(
             name: "SamplingHandlerTestClient",
             version: "1.0"
         )

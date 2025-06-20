@@ -26,11 +26,11 @@ struct ClientExternalTests {
                 "https://agents-mcp-hackathon-quantaliz-mcp-micropayments.hf.space/gradio_api/mcp/sse"
         )!
         let transport = HTTPClientTransport(endpoint: url, streaming: true, logger: logger)
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         // Connect to the server
         _ = try await client.connect(transport: transport)
-        #expect(await transport.isConnected == true, "Client should be connected")
+        #expect(await transport.isConnected == true, "MCPClient should be connected")
 
         // List prompts
         let (prompts, _) = try await client.listPrompts()
@@ -47,6 +47,6 @@ struct ClientExternalTests {
 
         // Disconnect
         await client.disconnect()
-        #expect(await transport.isConnected == false, "Client should be disconnected")
+        #expect(await transport.isConnected == false, "MCPClient should be disconnected")
     }
 }

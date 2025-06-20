@@ -138,7 +138,7 @@ import Testing
 
     // MARK: -
 
-    @Suite("HTTP Client MCPTransport Tests", .serialized)
+    @Suite("HTTP MCPClient MCPTransport Tests", .serialized)
     struct HTTPClientTransportTests {
         let testEndpoint = URL(string: "http://localhost:8080/test")!
 
@@ -540,7 +540,7 @@ import Testing
         #endif  // !canImport(FoundationNetworking)
 
         @Test(
-            "Client with HTTP MCPTransport complete flow", .httpClientTransportSetup,
+            "MCPClient with HTTP MCPTransport complete flow", .httpClientTransportSetup,
             .timeLimit(.minutes(1)))
         func testClientFlow() async throws {
             let configuration = URLSessionConfiguration.ephemeral
@@ -553,7 +553,7 @@ import Testing
                 logger: nil
             )
 
-            let client = Client(name: "TestClient", version: "1.0.0")
+            let client = MCPClient(name: "TestClient", version: "1.0.0")
 
             // Use an actor to track request sequence
             actor RequestTracker {

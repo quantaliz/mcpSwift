@@ -13,12 +13,12 @@ import Logging
 
 @testable import MCPSwift
 
-@Suite("Client Tests")
+@Suite("MCPClient Tests")
 struct ClientTests {
-    @Test("Client connect and disconnect")
+    @Test("MCPClient connect and disconnect")
     func testClientConnectAndDisconnect() async throws {
         let transport = MockTransport()
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         #expect(await transport.isConnected == false)
 
@@ -55,7 +55,7 @@ struct ClientTests {
     )
     func testClientPing() async throws {
         let transport = MockTransport()
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         // Queue a response for the initialize request
         try await Task.sleep(for: .milliseconds(10))  // Wait for request to be sent
@@ -109,7 +109,7 @@ struct ClientTests {
     func testClientConnectionFailure() async {
         let transport = MockTransport()
         await transport.setFailConnect(true)
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         do {
             try await client.connect(transport: transport)
@@ -128,7 +128,7 @@ struct ClientTests {
     @Test("Send failure handling")
     func testClientSendFailure() async throws {
         let transport = MockTransport()
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         // Set up a task to handle the initialize response
         let initTask = Task {
@@ -176,8 +176,8 @@ struct ClientTests {
     @Test("Strict configuration - capabilities check")
     func testStrictConfiguration() async throws {
         let transport = MockTransport()
-        let config = Client.Configuration.strict
-        let client = Client(name: "TestClient", version: "1.0", configuration: config)
+        let config = MCPClient.Configuration.strict
+        let client = MCPClient(name: "TestClient", version: "1.0", configuration: config)
 
         // Set up a task to handle the initialize response
         let initTask = Task {
@@ -231,8 +231,8 @@ struct ClientTests {
     @Test("Non-strict configuration - capabilities check")
     func testNonStrictConfiguration() async throws {
         let transport = MockTransport()
-        let config = Client.Configuration.default
-        let client = Client(name: "TestClient", version: "1.0", configuration: config)
+        let config = MCPClient.Configuration.default
+        let client = MCPClient(name: "TestClient", version: "1.0", configuration: config)
 
         // Set up a task to handle the initialize response
         let initTask = Task {
@@ -321,7 +321,7 @@ struct ClientTests {
     @Test("Batch request - success")
     func testBatchRequestSuccess() async throws {
         let transport = MockTransport()
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         // Set up a task to handle the initialize response
         let initTask = Task {
@@ -400,7 +400,7 @@ struct ClientTests {
     @Test("Batch request - mixed success/error")
     func testBatchRequestMixed() async throws {
         let transport = MockTransport()
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         // Set up a task to handle the initialize response
         let initTask = Task {
@@ -479,7 +479,7 @@ struct ClientTests {
     @Test("Batch request - empty")
     func testBatchRequestEmpty() async throws {
         let transport = MockTransport()
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         // Set up a task to handle the initialize response
         let initTask = Task {
@@ -518,7 +518,7 @@ struct ClientTests {
     @Test("Notify method sends notifications")
     func testClientNotify() async throws {
         let transport = MockTransport()
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         // Set up a task to handle the initialize response
         let initTask = Task {
@@ -572,7 +572,7 @@ struct ClientTests {
     @Test("Initialize sends initialized notification")
     func testClientInitializeNotification() async throws {
         let transport = MockTransport()
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         // Create a task for initialize
         let initTask = Task {
@@ -650,7 +650,7 @@ struct ClientTests {
     @Test("Race condition between send error and response")
     func testSendErrorResponseRace() async throws {
         let transport = MockTransport()
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         // Set up a task to handle the initialize response
         let initTask = Task {
@@ -710,7 +710,7 @@ struct ClientTests {
     @Test("Race condition between response and send error")
     func testResponseSendErrorRace() async throws {
         let transport = MockTransport()
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         // Set up a task to handle the initialize response
         let initTask = Task {

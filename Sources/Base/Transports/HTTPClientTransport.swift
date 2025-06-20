@@ -36,7 +36,7 @@ import Logging
 /// )
 ///
 /// // Initialize the client with streaming transport
-/// let client = Client(name: "MyApp", version: "1.0.0")
+/// let client = MCPClient(name: "MyApp", version: "1.0.0")
 /// try await client.connect(transport: transport)
 ///
 /// // The transport will automatically handle SSE events

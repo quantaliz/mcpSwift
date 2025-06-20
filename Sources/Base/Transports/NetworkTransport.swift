@@ -58,7 +58,7 @@ import Logging
     /// let transport = NetworkTransport(connection: connection)
     ///
     /// // Use the transport with an MCP client
-    /// let client = Client(name: "MyApp", version: "1.0.0")
+    /// let client = MCPClient(name: "MyApp", version: "1.0.0")
     /// try await client.connect(transport: transport)
     /// ```
     public actor NetworkTransport: MCPTransport {

@@ -105,7 +105,7 @@ struct RoundtripTests {
             return ReadResource.Result(contents: [.text("Hello, World!", uri: request.uri)])
         }
 
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         try await server.start(transport: serverTransport)
 

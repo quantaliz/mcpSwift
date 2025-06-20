@@ -150,9 +150,9 @@ public actor Server {
     /// Whether the server is initialized
     private var isInitialized = false
     /// The client information
-    private var clientInfo: Client.Info?
+    private var clientInfo: MCPClient.Info?
     /// The client capabilities
-    private var clientCapabilities: Client.Capabilities?
+    private var clientCapabilities: MCPClient.Capabilities?
     /// The protocol version
     private var protocolVersion: String?
     /// The list of subscriptions
@@ -177,7 +177,7 @@ public actor Server {
     ///   - initializeHook: An optional hook that runs when the client sends an initialize request
     public func start(
         transport: any MCPTransport,
-        initializeHook: (@Sendable (Client.Info, Client.Capabilities) async throws -> Void)? = nil
+        initializeHook: (@Sendable (MCPClient.Info, MCPClient.Capabilities) async throws -> Void)? = nil
     ) async throws {
         self.connection = transport
         registerDefaultHandlers(initializeHook: initializeHook)
@@ -317,10 +317,10 @@ public actor Server {
     ///
     /// The sampling flow follows these steps:
     /// 1. Server sends a `sampling/createMessage` request to the client
-    /// 2. Client reviews the request and can modify it
-    /// 3. Client samples from an LLM
-    /// 4. Client reviews the completion
-    /// 5. Client returns the result to the server
+    /// 2. MCPClient reviews the request and can modify it
+    /// 3. MCPClient samples from an LLM
+    /// 4. MCPClient reviews the completion
+    /// 5. MCPClient returns the result to the server
     ///
     /// - Parameters:
     ///   - messages: The conversation history to send to the LLM
@@ -546,7 +546,7 @@ public actor Server {
     }
 
     private func registerDefaultHandlers(
-        initializeHook: (@Sendable (Client.Info, Client.Capabilities) async throws -> Void)?
+        initializeHook: (@Sendable (MCPClient.Info, MCPClient.Capabilities) async throws -> Void)?
     ) {
         // Initialize
         withMethodHandler(MCPInitialize.self) { [weak self] params in
@@ -588,8 +588,8 @@ public actor Server {
     }
 
     private func setInitialState(
-        clientInfo: Client.Info,
-        clientCapabilities: Client.Capabilities,
+        clientInfo: MCPClient.Info,
+        clientCapabilities: MCPClient.Capabilities,
         protocolVersion: String
     ) async {
         self.clientInfo = clientInfo

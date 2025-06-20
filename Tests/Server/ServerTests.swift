@@ -118,7 +118,7 @@ struct ServerTests {
 
         try await server.start(transport: transport) { clientInfo, _ in
             if clientInfo.name == "BlockedClient" {
-                throw MCPError.invalidRequest("Client not allowed")
+                throw MCPError.invalidRequest("MCPClient not allowed")
             }
         }
 
@@ -143,7 +143,7 @@ struct ServerTests {
         let messages = await transport.sentMessages
         if let response = messages.first {
             #expect(response.contains("error"))
-            #expect(response.contains("Client not allowed"))
+            #expect(response.contains("MCPClient not allowed"))
         }
 
         await server.stop()

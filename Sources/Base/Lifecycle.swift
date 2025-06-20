@@ -19,13 +19,13 @@ public enum MCPInitialize: MCPMethod {
 
     public struct Parameters: Hashable, Codable, Sendable {
         public let protocolVersion: String
-        public let capabilities: Client.Capabilities
-        public let clientInfo: Client.Info
+        public let capabilities: MCPClient.Capabilities
+        public let clientInfo: MCPClient.Info
 
         public init(
             protocolVersion: String = MCPVersion.latest,
-            capabilities: Client.Capabilities,
-            clientInfo: Client.Info
+            capabilities: MCPClient.Capabilities,
+            clientInfo: MCPClient.Info
         ) {
             self.protocolVersion = protocolVersion
             self.capabilities = capabilities
@@ -42,10 +42,10 @@ public enum MCPInitialize: MCPMethod {
                 try container.decodeIfPresent(String.self, forKey: .protocolVersion)
                 ?? MCPVersion.latest
             capabilities =
-                try container.decodeIfPresent(Client.Capabilities.self, forKey: .capabilities)
+                try container.decodeIfPresent(MCPClient.Capabilities.self, forKey: .capabilities)
                 ?? .init()
             clientInfo =
-                try container.decodeIfPresent(Client.Info.self, forKey: .clientInfo)
+                try container.decodeIfPresent(MCPClient.Info.self, forKey: .clientInfo)
                 ?? .init(name: "unknown", version: "0.0.0")
         }
     }

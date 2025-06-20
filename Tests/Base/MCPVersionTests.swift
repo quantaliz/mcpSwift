@@ -13,35 +13,35 @@ import Testing
 
 @Suite("Version Negotiation Tests")
 struct MCPVersionTests {
-    @Test("Client requests latest supported version")
+    @Test("MCPClient requests latest supported version")
     func testClientRequestsLatestSupportedVersion() {
         let clientVersion = MCPVersion.latest
         let negotiatedVersion = MCPVersion.negotiate(clientRequestedVersion: clientVersion)
         #expect(negotiatedVersion == MCPVersion.latest)
     }
 
-    @Test("Client requests older supported version")
+    @Test("MCPClient requests older supported version")
     func testClientRequestsOlderSupportedVersion() {
         let clientVersion = "2024-11-05"
         let negotiatedVersion = MCPVersion.negotiate(clientRequestedVersion: clientVersion)
         #expect(negotiatedVersion == "2024-11-05")
     }
 
-    @Test("Client requests unsupported version")
+    @Test("MCPClient requests unsupported version")
     func testClientRequestsUnsupportedVersion() {
         let clientVersion = "2023-01-01"  // An unsupported version
         let negotiatedVersion = MCPVersion.negotiate(clientRequestedVersion: clientVersion)
         #expect(negotiatedVersion == MCPVersion.latest)
     }
 
-    @Test("Client requests empty version string")
+    @Test("MCPClient requests empty version string")
     func testClientRequestsEmptyVersionString() {
         let clientVersion = ""
         let negotiatedVersion = MCPVersion.negotiate(clientRequestedVersion: clientVersion)
         #expect(negotiatedVersion == MCPVersion.latest)
     }
 
-    @Test("Client requests garbage version string")
+    @Test("MCPClient requests garbage version string")
     func testClientRequestsGarbageVersionString() {
         let clientVersion = "not-a-version"
         let negotiatedVersion = MCPVersion.negotiate(clientRequestedVersion: clientVersion)

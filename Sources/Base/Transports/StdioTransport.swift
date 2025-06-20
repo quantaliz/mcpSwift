@@ -48,7 +48,7 @@ import struct Foundation.Data
     /// import MCP
     ///
     /// // Initialize the client
-    /// let client = Client(name: "MyApp", version: "1.0.0")
+    /// let client = MCPClient(name: "MyApp", version: "1.0.0")
     ///
     /// // Create a transport and connect
     /// let transport = StdioTransport()
