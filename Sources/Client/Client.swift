@@ -530,7 +530,7 @@ public actor Client {
                 do {
                     try await httpClientTransport.startStreaming()
                 } catch {
-                    logger?.error("SSE streaming start failed: \(error)")
+                    await logger?.error("SSE streaming start failed: \(error)")
                 }
             }
         }

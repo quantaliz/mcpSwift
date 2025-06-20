@@ -486,14 +486,19 @@ public actor HTTPClientTransport: Transport {
             while isConnected && !Task.isCancelled {
                 do {
                     try await connectToEventStream()
-                } catch StreamableHTTPTransportError.methodNotAllowed {
-                    logger.warning("Server does not support SSE GET - stopping event listener")
-                    break
                 } catch {
-                    if !Task.isCancelled {
-                        logger.error("SSE connection error: \(error)")
-                        // Wait before retrying
-                        try? await Task.sleep(for: .seconds(1))
+                    if let error = error as? StreamableHTTPTransportError {
+                        switch error {
+                        case .methodNotAllowed:
+                            logger.warning("Server does not support SSE GET - stopping event listener")
+                            break
+                        }
+                    } else {
+                        if !Task.isCancelled {
+                            logger.error("SSE connection error: \(error)")
+                            // Wait before retrying
+                            try? await Task.sleep(for: .seconds(1))
+                        }
                     }
                 }
             }
@@ -509,7 +514,7 @@ public actor HTTPClientTransport: Transport {
     /// 4. Clients MUST support both SSE and HTTP long-polling
     ///
     /// - Throws: MCPError for connection failures
-    private enum StreamableHTTPTransportError: Error {
+    private enum StreamableHTTPTransportError: Swift.Error {
         case methodNotAllowed
     }
     
