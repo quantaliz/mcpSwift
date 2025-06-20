@@ -1,5 +1,5 @@
 //
-//  ClientTests.swift
+//  MCPClientTests.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -14,7 +14,7 @@ import Logging
 @testable import MCPSwift
 
 @Suite("MCPClient Tests")
-struct ClientTests {
+struct MCPClientTests {
     @Test("MCPClient connect and disconnect")
     func testClientConnectAndDisconnect() async throws {
         let transport = MockTransport()

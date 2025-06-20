@@ -1,5 +1,5 @@
 //
-//  ClientTests.swift
+//  MCPClientTests.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -13,8 +13,8 @@ import Testing
 
 @testable import MCPSwift
 
-@Suite("ClientExternal Tests")
-struct ClientExternalTests {
+@Suite("MCPClientExternal Tests")
+struct MCPClientExternalTests {
     @Test(
         "Connect to live server and list capabilities",
         .timeLimit(.minutes(1))  // Set a 1-minute timeout for the entire test
