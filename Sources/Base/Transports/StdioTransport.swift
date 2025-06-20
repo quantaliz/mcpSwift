@@ -54,7 +54,7 @@ import struct Foundation.Data
     /// let transport = StdioTransport()
     /// try await client.connect(transport: transport)
     /// ```
-    public actor StdioTransport: Transport {
+    public actor StdioTransport: MCPTransport {
         private let input: FileDescriptor
         private let output: FileDescriptor
         /// Logger instance for transport-related events

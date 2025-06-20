@@ -88,7 +88,7 @@ public actor Client {
     }
 
     /// The connection to the server
-    private var connection: (any Transport)?
+    private var connection: (any MCPTransport)?
     /// The logger for the client
     private var logger: Logger? {
         get async {
@@ -178,7 +178,7 @@ public actor Client {
 
     /// Connect to the server using the given transport
     @discardableResult
-    public func connect(transport: any Transport) async throws -> MCPInitialize.Result {
+    public func connect(transport: any MCPTransport) async throws -> MCPInitialize.Result {
         self.connection = transport
         try await self.connection?.connect()
 

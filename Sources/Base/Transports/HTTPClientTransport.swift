@@ -42,7 +42,7 @@ import Logging
 /// // The transport will automatically handle SSE events
 /// // and deliver them through the client's notification handlers
 /// ```
-public actor HTTPClientTransport: Transport {
+public actor HTTPClientTransport: MCPTransport {
     /// The server endpoint URL to connect to
     public let endpoint: URL
     private let session: URLSession

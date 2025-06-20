@@ -61,7 +61,7 @@ import Logging
     /// let client = Client(name: "MyApp", version: "1.0.0")
     /// try await client.connect(transport: transport)
     /// ```
-    public actor NetworkTransport: Transport {
+    public actor NetworkTransport: MCPTransport {
         /// Represents a heartbeat message for connection health monitoring.
         public struct Heartbeat: RawRepresentable, Hashable, Sendable {
             /// Magic bytes used to identify a heartbeat message.

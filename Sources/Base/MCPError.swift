@@ -22,7 +22,7 @@ public enum MCPError: Swift.Error, Sendable {
     // Server errors (-32000 to -32099)
     case serverError(code: Int, message: String)
 
-    // Transport specific errors
+    // MCPTransport specific errors
     case connectionClosed
     case transportError(Swift.Error)
 

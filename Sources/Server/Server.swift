@@ -125,7 +125,7 @@ public actor Server {
     /// Server information
     private let serverInfo: Server.Info
     /// The server connection
-    private var connection: (any Transport)?
+    private var connection: (any MCPTransport)?
     /// The server logger
     private var logger: Logger? {
         get async {
@@ -176,7 +176,7 @@ public actor Server {
     ///   - transport: The transport to use for the server
     ///   - initializeHook: An optional hook that runs when the client sends an initialize request
     public func start(
-        transport: any Transport,
+        transport: any MCPTransport,
         initializeHook: (@Sendable (Client.Info, Client.Capabilities) async throws -> Void)? = nil
     ) async throws {
         self.connection = transport

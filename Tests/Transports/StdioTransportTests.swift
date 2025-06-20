@@ -18,7 +18,7 @@ import Testing
     @preconcurrency import SystemPackage
 #endif
 
-@Suite("Stdio Transport Tests")
+@Suite("Stdio MCPTransport Tests")
 struct StdioTransportTests {
     @Test("Connection")
     func testStdioTransportConnection() async throws {

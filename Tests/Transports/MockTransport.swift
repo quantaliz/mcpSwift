@@ -17,7 +17,7 @@ import struct Foundation.POSIXError
 @testable import MCPSwift
 
 /// Mock transport for testing
-actor MockTransport: Transport {
+actor MockTransport: MCPTransport {
     var logger: Logger
 
     let encoder = JSONEncoder()
