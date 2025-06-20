@@ -52,11 +52,12 @@ struct VersioningTests {
     func testServerSupportedVersions() {
         #expect(Version.supported.contains("2025-03-26"))
         #expect(Version.supported.contains("2024-11-05"))
-        #expect(Version.supported.count == 2)
+        #expect(Version.supported.contains("2025-06-18"))
+        #expect(Version.supported.count == 3)
     }
 
     @Test("Server's latest version is correct")
     func testServerLatestVersion() {
-        #expect(Version.latest == "2025-03-26")
+        #expect(Version.latest == "2025-06-18")
     }
 }
