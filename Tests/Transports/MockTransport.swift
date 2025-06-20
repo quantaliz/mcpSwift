@@ -105,7 +105,7 @@ actor MockTransport: MCPTransport {
         queue(data: try encoder.encode(response))
     }
 
-    func queue<N: Notification>(notification: MCPMessage<N>) throws {
+    func queue<N: MCPNotification>(notification: MCPMessage<N>) throws {
         queue(data: try encoder.encode(notification))
     }
 

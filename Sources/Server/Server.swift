@@ -145,7 +145,7 @@ public actor Server {
     /// Request handlers
     private var methodHandlers: [String: MCPRequestHandlerBox] = [:]
     /// Notification handlers
-    private var notificationHandlers: [String: [NotificationHandlerBox]] = [:]
+    private var notificationHandlers: [String: [MCPNotificationHandlerBox]] = [:]
 
     /// Whether the server is initialized
     private var isInitialized = false
@@ -271,7 +271,7 @@ public actor Server {
 
     /// Register a notification handler
     @discardableResult
-    public func onNotification<N: Notification>(
+    public func onNotification<N: MCPNotification>(
         _ type: N.Type,
         handler: @escaping @Sendable (MCPMessage<N>) async throws -> Void
     ) -> Self {
@@ -296,7 +296,7 @@ public actor Server {
     }
 
     /// Send a notification to connected clients
-    public func notify<N: Notification>(_ notification: MCPMessage<N>) async throws {
+    public func notify<N: MCPNotification>(_ notification: MCPMessage<N>) async throws {
         guard let connection = connection else {
             throw MCPError.internalError("Server connection not initialized")
         }
@@ -516,7 +516,7 @@ public actor Server {
 
         if configuration.strict {
             // Check initialization state unless this is an initialized notification
-            if message.method != InitializedNotification.name {
+            if message.method != MCPInitializeNotification.name {
                 try checkInitialized()
             }
         }

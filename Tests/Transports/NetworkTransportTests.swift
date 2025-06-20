@@ -669,7 +669,7 @@ import Testing
             await transport.disconnect()
         }
 
-        @Test("Resource Cleanup")
+        @Test("MCPResource Cleanup")
         func testResourceCleanup() async throws {
             weak var weakConnection: MockNetworkConnection?
 

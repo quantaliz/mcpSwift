@@ -1,5 +1,5 @@
 //
-//  Resources.swift
+//  MCPResources.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -16,7 +16,7 @@ import Foundation
 /// Each resource is uniquely identified by a URI.
 ///
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/resources/
-public struct Resource: Hashable, Codable, Sendable {
+public struct MCPResource: Hashable, Codable, Sendable {
     /// The resource name
     public var name: String
     /// The resource URI
@@ -121,10 +121,10 @@ public enum ListResources: MCPMethod {
     }
 
     public struct Result: Hashable, Codable, Sendable {
-        public let resources: [Resource]
+        public let resources: [MCPResource]
         public let nextCursor: String?
 
-        public init(resources: [Resource], nextCursor: String? = nil) {
+        public init(resources: [MCPResource], nextCursor: String? = nil) {
             self.resources = resources
             self.nextCursor = nextCursor
         }
@@ -145,9 +145,9 @@ public enum ReadResource: MCPMethod {
     }
 
     public struct Result: Hashable, Codable, Sendable {
-        public let contents: [Resource.Content]
+        public let contents: [MCPResource.Content]
 
-        public init(contents: [Resource.Content]) {
+        public init(contents: [MCPResource.Content]) {
             self.contents = contents
         }
     }
@@ -171,10 +171,10 @@ public enum ListResourceTemplates: MCPMethod {
     }
 
     public struct Result: Hashable, Codable, Sendable {
-        public let templates: [Resource.Template]
+        public let templates: [MCPResource.Template]
         public let nextCursor: String?
 
-        public init(templates: [Resource.Template], nextCursor: String? = nil) {
+        public init(templates: [MCPResource.Template], nextCursor: String? = nil) {
             self.templates = templates
             self.nextCursor = nextCursor
         }
@@ -188,7 +188,7 @@ public enum ListResourceTemplates: MCPMethod {
 
 /// When the list of available resources changes, servers that declared the listChanged capability SHOULD send a notification.
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/resources/#list-changed-notification
-public struct ResourceListChangedNotification: Notification {
+public struct ResourceListChangedNotification: MCPNotification {
     public static let name: String = "notifications/resources/list_changed"
 
     public typealias Parameters = Empty
@@ -208,7 +208,7 @@ public enum ResourceSubscribe: MCPMethod {
 
 /// When a resource changes, servers that declared the updated capability SHOULD send a notification to subscribed clients.
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/resources/#subscriptions
-public struct ResourceUpdatedNotification: Notification {
+public struct ResourceUpdatedNotification: MCPNotification {
     public static let name: String = "notifications/resources/updated"
 
     public struct Parameters: Hashable, Codable, Sendable {

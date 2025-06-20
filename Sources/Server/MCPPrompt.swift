@@ -1,5 +1,5 @@
 //
-//  Prompts.swift
+//  MCPPrompt.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -17,7 +17,7 @@ import Foundation
 /// and provide arguments to customize them.
 ///
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/prompts/
-public struct Prompt: Hashable, Codable, Sendable {
+public struct MCPPrompt: Hashable, Codable, Sendable {
     /// The prompt name
     public let name: String
     /// The prompt description
@@ -129,7 +129,7 @@ public struct Prompt: Hashable, Codable, Sendable {
 
 // MARK: - Codable
 
-extension Prompt.Message.Content: Codable {
+extension MCPPrompt.Message.Content: Codable {
     private enum CodingKeys: String, CodingKey {
         case type, text, data, mimeType, uri, blob
     }
@@ -191,7 +191,7 @@ extension Prompt.Message.Content: Codable {
 
 // MARK: - ExpressibleByStringLiteral
 
-extension Prompt.Message.Content: ExpressibleByStringLiteral {
+extension MCPPrompt.Message.Content: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
         self = .text(text: value)
     }
@@ -199,7 +199,7 @@ extension Prompt.Message.Content: ExpressibleByStringLiteral {
 
 // MARK: - ExpressibleByStringInterpolation
 
-extension Prompt.Message.Content: ExpressibleByStringInterpolation {
+extension MCPPrompt.Message.Content: ExpressibleByStringInterpolation {
     public init(stringInterpolation: DefaultStringInterpolation) {
         self = .text(text: String(stringInterpolation: stringInterpolation))
     }
@@ -225,10 +225,10 @@ public enum ListPrompts: MCPMethod {
     }
 
     public struct Result: Hashable, Codable, Sendable {
-        public let prompts: [Prompt]
+        public let prompts: [MCPPrompt]
         public let nextCursor: String?
 
-        public init(prompts: [Prompt], nextCursor: String? = nil) {
+        public init(prompts: [MCPPrompt], nextCursor: String? = nil) {
             self.prompts = prompts
             self.nextCursor = nextCursor
         }
@@ -253,9 +253,9 @@ public enum GetPrompt: MCPMethod {
 
     public struct Result: Hashable, Codable, Sendable {
         public let description: String?
-        public let messages: [Prompt.Message]
+        public let messages: [MCPPrompt.Message]
 
-        public init(description: String?, messages: [Prompt.Message]) {
+        public init(description: String?, messages: [MCPPrompt.Message]) {
             self.description = description
             self.messages = messages
         }
@@ -264,6 +264,6 @@ public enum GetPrompt: MCPMethod {
 
 /// When the list of available prompts changes, servers that declared the listChanged capability SHOULD send a notification.
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/prompts/#list-changed-notification
-public struct PromptListChangedNotification: Notification {
+public struct PromptListChangedNotification: MCPNotification {
     public static let name: String = "notifications/prompts/list_changed"
 }

@@ -14,20 +14,20 @@ import class Foundation.JSONEncoder
 
 @testable import MCPSwift
 
-@Suite("Notification Tests")
+@Suite("MCPNotification Tests")
 struct MCPNotificationTests {
-    struct TestNotification: Notification {
+    struct TestNotification: MCPNotification {
         struct Parameters: Codable, Hashable, Sendable {
             let event: String
         }
         static let name = "test.notification"
     }
 
-    struct InitializedNotification: Notification {
+    struct InitializedNotification: MCPNotification {
         static let name = "notifications/initialized"
     }
 
-    @Test("Notification initialization with parameters")
+    @Test("MCPNotification initialization with parameters")
     func testNotificationWithParameters() throws {
         let params = TestNotification.Parameters(event: "test-event")
         let notification = TestNotification.message(params)
@@ -47,7 +47,7 @@ struct MCPNotificationTests {
 
     @Test("Empty parameters notification")
     func testEmptyParametersNotification() throws {
-        struct EmptyNotification: Notification {
+        struct EmptyNotification: MCPNotification {
             static let name = "empty.notification"
         }
 
@@ -96,7 +96,7 @@ struct MCPNotificationTests {
         #expect(decoded.method == InitializedNotification.name)
     }
 
-    @Test("Resource updated notification with parameters")
+    @Test("MCPResource updated notification with parameters")
     func testResourceUpdatedNotification() throws {
         let params = ResourceUpdatedNotification.Parameters(uri: "test://resource")
         let notification = ResourceUpdatedNotification.message(params)

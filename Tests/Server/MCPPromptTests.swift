@@ -12,17 +12,17 @@ import Testing
 
 @testable import MCPSwift
 
-@Suite("Prompt Tests")
+@Suite("MCPPrompt Tests")
 struct PromptTests {
-    @Test("Prompt initialization with valid parameters")
+    @Test("MCPPrompt initialization with valid parameters")
     func testPromptInitialization() throws {
-        let argument = Prompt.Argument(
+        let argument = MCPPrompt.Argument(
             name: "test_arg",
             description: "A test argument",
             required: true
         )
 
-        let prompt = Prompt(
+        let prompt = MCPPrompt(
             name: "test_prompt",
             description: "A test prompt",
             arguments: [argument]
@@ -36,15 +36,15 @@ struct PromptTests {
         #expect(prompt.arguments?[0].required == true)
     }
 
-    @Test("Prompt MCPMessage encoding and decoding")
+    @Test("MCPPrompt MCPMessage encoding and decoding")
     func testPromptMessageEncodingDecoding() throws {
-        let textMessage: Prompt.Message = .user("Hello, world!")
+        let textMessage: MCPPrompt.Message = .user("Hello, world!")
 
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(textMessage)
-        let decoded = try decoder.decode(Prompt.Message.self, from: data)
+        let decoded = try decoder.decode(MCPPrompt.Message.self, from: data)
 
         #expect(decoded.role == .user)
         if case .text(let text) = decoded.content {
@@ -54,15 +54,15 @@ struct PromptTests {
         }
     }
 
-    @Test("Prompt MCPMessage Content types encoding and decoding")
+    @Test("MCPPrompt MCPMessage Content types encoding and decoding")
     func testPromptMessageContentTypes() throws {
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
         // Test text content
-        let textContent = Prompt.Message.Content.text(text: "Test text")
+        let textContent = MCPPrompt.Message.Content.text(text: "Test text")
         let textData = try encoder.encode(textContent)
-        let decodedText = try decoder.decode(Prompt.Message.Content.self, from: textData)
+        let decodedText = try decoder.decode(MCPPrompt.Message.Content.self, from: textData)
         if case .text(let text) = decodedText {
             #expect(text == "Test text")
         } else {
@@ -70,10 +70,10 @@ struct PromptTests {
         }
 
         // Test audio content
-        let audioContent = Prompt.Message.Content.audio(
+        let audioContent = MCPPrompt.Message.Content.audio(
             data: "base64audiodata", mimeType: "audio/wav")
         let audioData = try encoder.encode(audioContent)
-        let decodedAudio = try decoder.decode(Prompt.Message.Content.self, from: audioData)
+        let decodedAudio = try decoder.decode(MCPPrompt.Message.Content.self, from: audioData)
         if case .audio(let data, let mimeType) = decodedAudio {
             #expect(data == "base64audiodata")
             #expect(mimeType == "audio/wav")
@@ -82,9 +82,9 @@ struct PromptTests {
         }
 
         // Test image content
-        let imageContent = Prompt.Message.Content.image(data: "base64data", mimeType: "image/png")
+        let imageContent = MCPPrompt.Message.Content.image(data: "base64data", mimeType: "image/png")
         let imageData = try encoder.encode(imageContent)
-        let decodedImage = try decoder.decode(Prompt.Message.Content.self, from: imageData)
+        let decodedImage = try decoder.decode(MCPPrompt.Message.Content.self, from: imageData)
         if case .image(let data, let mimeType) = decodedImage {
             #expect(data == "base64data")
             #expect(mimeType == "image/png")
@@ -93,14 +93,14 @@ struct PromptTests {
         }
 
         // Test resource content
-        let resourceContent = Prompt.Message.Content.resource(
+        let resourceContent = MCPPrompt.Message.Content.resource(
             uri: "file://test.txt",
             mimeType: "text/plain",
             text: "Sample text",
             blob: "blob_data"
         )
         let resourceData = try encoder.encode(resourceContent)
-        let decodedResource = try decoder.decode(Prompt.Message.Content.self, from: resourceData)
+        let decodedResource = try decoder.decode(MCPPrompt.Message.Content.self, from: resourceData)
         if case .resource(let uri, let mimeType, let text, let blob) = decodedResource {
             #expect(uri == "file://test.txt")
             #expect(mimeType == "text/plain")
@@ -111,16 +111,16 @@ struct PromptTests {
         }
     }
 
-    @Test("Prompt Reference validation")
+    @Test("MCPPrompt Reference validation")
     func testPromptReference() throws {
-        let reference = Prompt.Reference(name: "test_prompt")
+        let reference = MCPPrompt.Reference(name: "test_prompt")
         #expect(reference.name == "test_prompt")
 
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(reference)
-        let decoded = try decoder.decode(Prompt.Reference.self, from: data)
+        let decoded = try decoder.decode(MCPPrompt.Reference.self, from: data)
 
         #expect(decoded.name == "test_prompt")
     }
@@ -140,7 +140,7 @@ struct PromptTests {
 
     @Test("GetPrompt result validation")
     func testGetPromptResult() throws {
-        let messages: [Prompt.Message] = [
+        let messages: [MCPPrompt.Message] = [
             .user("User message"),
             .assistant("Assistant response")
         ]
@@ -194,8 +194,8 @@ struct PromptTests {
     @Test("ListPrompts result validation")
     func testListPromptsResult() throws {
         let prompts = [
-            Prompt(name: "prompt1", description: "First prompt"),
-            Prompt(name: "prompt2", description: "Second prompt")
+            MCPPrompt(name: "prompt1", description: "First prompt"),
+            MCPPrompt(name: "prompt2", description: "Second prompt")
         ]
 
         let result = ListPrompts.Result(prompts: prompts, nextCursor: "next_page")
@@ -210,10 +210,10 @@ struct PromptTests {
         #expect(PromptListChangedNotification.name == "notifications/prompts/list_changed")
     }
 
-    @Test("Prompt MCPMessage factory methods")
+    @Test("MCPPrompt MCPMessage factory methods")
     func testPromptMessageFactoryMethods() throws {
         // Test user message factory method
-        let userMessage: Prompt.Message = .user("Hello, world!")
+        let userMessage: MCPPrompt.Message = .user("Hello, world!")
         #expect(userMessage.role == .user)
         if case .text(let text) = userMessage.content {
             #expect(text == "Hello, world!")
@@ -222,7 +222,7 @@ struct PromptTests {
         }
 
         // Test assistant message factory method
-        let assistantMessage: Prompt.Message = .assistant("Hi there!")
+        let assistantMessage: MCPPrompt.Message = .assistant("Hi there!")
         #expect(assistantMessage.role == .assistant)
         if case .text(let text) = assistantMessage.content {
             #expect(text == "Hi there!")
@@ -231,7 +231,7 @@ struct PromptTests {
         }
 
         // Test with image content
-        let imageMessage: Prompt.Message = .user(.image(data: "base64data", mimeType: "image/png"))
+        let imageMessage: MCPPrompt.Message = .user(.image(data: "base64data", mimeType: "image/png"))
         #expect(imageMessage.role == .user)
         if case .image(let data, let mimeType) = imageMessage.content {
             #expect(data == "base64data")
@@ -241,7 +241,7 @@ struct PromptTests {
         }
 
         // Test with audio content
-        let audioMessage: Prompt.Message = .assistant(
+        let audioMessage: MCPPrompt.Message = .assistant(
             .audio(data: "base64audio", mimeType: "audio/wav"))
         #expect(audioMessage.role == .assistant)
         if case .audio(let data, let mimeType) = audioMessage.content {
@@ -252,7 +252,7 @@ struct PromptTests {
         }
 
         // Test with resource content
-        let resourceMessage: Prompt.Message = .user(
+        let resourceMessage: MCPPrompt.Message = .user(
             .resource(
                 uri: "file://test.txt", mimeType: "text/plain", text: "Sample text", blob: nil))
         #expect(resourceMessage.role == .user)
@@ -266,10 +266,10 @@ struct PromptTests {
         }
     }
 
-    @Test("Prompt Content ExpressibleByStringLiteral")
+    @Test("MCPPrompt Content ExpressibleByStringLiteral")
     func testPromptContentExpressibleByStringLiteral() throws {
         // Test string literal assignment
-        let content: Prompt.Message.Content = "Hello from string literal"
+        let content: MCPPrompt.Message.Content = "Hello from string literal"
 
         if case .text(let text) = content {
             #expect(text == "Hello from string literal")
@@ -278,7 +278,7 @@ struct PromptTests {
         }
 
         // Test in message creation
-        let message: Prompt.Message = .user("Direct string literal")
+        let message: MCPPrompt.Message = .user("Direct string literal")
         if case .text(let text) = message.content {
             #expect(text == "Direct string literal")
         } else {
@@ -286,7 +286,7 @@ struct PromptTests {
         }
 
         // Test in array context
-        let messages: [Prompt.Message] = [
+        let messages: [MCPPrompt.Message] = [
             .user("First message"),
             .assistant("Second message"),
             .user("Third message")
@@ -298,14 +298,14 @@ struct PromptTests {
         #expect(messages[2].role == .user)
     }
 
-    @Test("Prompt Content ExpressibleByStringInterpolation")
+    @Test("MCPPrompt Content ExpressibleByStringInterpolation")
     func testPromptContentExpressibleByStringInterpolation() throws {
         let userName = "Alice"
         let position = "Software Engineer"
         let company = "TechCorp"
 
         // Test string interpolation
-        let content: Prompt.Message.Content =
+        let content: MCPPrompt.Message.Content =
             "Hello \(userName), welcome to your \(position) interview at \(company)"
 
         if case .text(let text) = content {
@@ -315,7 +315,7 @@ struct PromptTests {
         }
 
         // Test in message creation with interpolation
-        let message: Prompt.Message = .user(
+        let message: MCPPrompt.Message = .user(
             "Hi \(userName), I'm excited about the \(position) role at \(company)")
         if case .text(let text) = message.content {
             #expect(text == "Hi Alice, I'm excited about the Software Engineer role at TechCorp")
@@ -326,7 +326,7 @@ struct PromptTests {
         // Test complex interpolation
         let skills = ["Swift", "Python", "JavaScript"]
         let experience = 5
-        let interviewMessage: Prompt.Message = .assistant(
+        let interviewMessage: MCPPrompt.Message = .assistant(
             "I see you have \(experience) years of experience with \(skills.joined(separator: ", ")). That's impressive!"
         )
 
@@ -340,7 +340,7 @@ struct PromptTests {
         }
     }
 
-    @Test("Prompt MCPMessage factory methods with string interpolation")
+    @Test("MCPPrompt MCPMessage factory methods with string interpolation")
     func testPromptMessageFactoryMethodsWithStringInterpolation() throws {
         let candidateName = "Bob"
         let position = "Data Scientist"
@@ -348,7 +348,7 @@ struct PromptTests {
         let experience = 3
 
         // Test user message with interpolation
-        let userMessage: Prompt.Message = .user(
+        let userMessage: MCPPrompt.Message = .user(
             "Hello, I'm \(candidateName) and I'm interviewing for the \(position) position")
         #expect(userMessage.role == .user)
         if case .text(let text) = userMessage.content {
@@ -358,7 +358,7 @@ struct PromptTests {
         }
 
         // Test assistant message with interpolation
-        let assistantMessage: Prompt.Message = .assistant(
+        let assistantMessage: MCPPrompt.Message = .assistant(
             "Welcome \(candidateName)! Tell me about your \(experience) years of experience in data science"
         )
         #expect(assistantMessage.role == .assistant)
@@ -369,7 +369,7 @@ struct PromptTests {
         }
 
         // Test in conversation array
-        let conversation: [Prompt.Message] = [
+        let conversation: [MCPPrompt.Message] = [
             .user("Hi, I'm \(candidateName) applying for \(position) at \(company)"),
             .assistant("Welcome \(candidateName)! How many years of experience do you have?"),
             .user("I have \(experience) years of experience in the field"),
@@ -388,12 +388,12 @@ struct PromptTests {
         }
     }
 
-    @Test("Prompt ergonomic API usage patterns")
+    @Test("MCPPrompt ergonomic API usage patterns")
     func testPromptErgonomicAPIUsagePatterns() throws {
         // Test various ergonomic usage patterns enabled by the new API
 
         // Pattern 1: Simple interview conversation
-        let interviewConversation: [Prompt.Message] = [
+        let interviewConversation: [MCPPrompt.Message] = [
             .user("Tell me about yourself"),
             .assistant("I'm a software engineer with 5 years of experience"),
             .user("What's your biggest strength?"),
@@ -406,7 +406,7 @@ struct PromptTests {
         let role = "Product Manager"
         let yearsExp = 7
 
-        let dynamicConversation: [Prompt.Message] = [
+        let dynamicConversation: [MCPPrompt.Message] = [
             .user("Welcome \(candidateName) to the \(role) interview"),
             .assistant("Thank you! I'm excited about this \(role) opportunity"),
             .user("I see you have \(yearsExp) years of experience. Tell me about your background"),
@@ -417,7 +417,7 @@ struct PromptTests {
         #expect(dynamicConversation.count == 4)
 
         // Pattern 3: Mixed content types
-        let mixedContent: [Prompt.Message] = [
+        let mixedContent: [MCPPrompt.Message] = [
             .user("Please review this design mockup"),
             .assistant(.image(data: "design_mockup_data", mimeType: "image/png")),
             .user("What do you think of the user flow?"),
@@ -442,7 +442,7 @@ struct PromptTests {
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(interviewConversation)
-        let decoded = try decoder.decode([Prompt.Message].self, from: data)
+        let decoded = try decoder.decode([MCPPrompt.Message].self, from: data)
 
         #expect(decoded.count == 4)
         #expect(decoded[0].role == .user)

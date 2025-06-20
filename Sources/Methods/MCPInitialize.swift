@@ -60,6 +60,6 @@ public enum MCPInitialize: MCPMethod {
 
 /// After successful initialization, the client MUST send an initialized notification to indicate it is ready to begin normal operations.
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/basic/lifecycle/#initialization
-public struct InitializedNotification: Notification {
+public struct MCPInitializeNotification: MCPNotification {
     public static let name: String = "notifications/initialized"
 }

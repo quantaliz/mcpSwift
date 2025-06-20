@@ -17,7 +17,7 @@ import Foundation
 /// describing its schema.
 ///
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/tools/
-public struct Tool: Hashable, Codable, Sendable {
+public struct MCPTool: Hashable, Codable, Sendable {
     /// The tool name
     public let name: String
     /// The tool description
@@ -194,7 +194,7 @@ public struct Tool: Hashable, Codable, Sendable {
         description = try container.decode(String.self, forKey: .description)
         inputSchema = try container.decodeIfPresent(MCPValue.self, forKey: .inputSchema)
         annotations =
-            try container.decodeIfPresent(Tool.Annotations.self, forKey: .annotations) ?? .init()
+            try container.decodeIfPresent(MCPTool.Annotations.self, forKey: .annotations) ?? .init()
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -230,10 +230,10 @@ public enum ListTools: MCPMethod {
     }
 
     public struct Result: Hashable, Codable, Sendable {
-        public let tools: [Tool]
+        public let tools: [MCPTool]
         public let nextCursor: String?
 
-        public init(tools: [Tool], nextCursor: String? = nil) {
+        public init(tools: [MCPTool], nextCursor: String? = nil) {
             self.tools = tools
             self.nextCursor = nextCursor
         }
@@ -256,10 +256,10 @@ public enum CallTool: MCPMethod {
     }
 
     public struct Result: Hashable, Codable, Sendable {
-        public let content: [Tool.Content]
+        public let content: [MCPTool.Content]
         public let isError: Bool?
 
-        public init(content: [Tool.Content], isError: Bool? = nil) {
+        public init(content: [MCPTool.Content], isError: Bool? = nil) {
             self.content = content
             self.isError = isError
         }
@@ -268,6 +268,6 @@ public enum CallTool: MCPMethod {
 
 /// When the list of available tools changes, servers that declared the listChanged capability SHOULD send a notification:
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/tools/#list-changed-notification
-public struct ToolListChangedNotification: Notification {
+public struct ToolListChangedNotification: MCPNotification {
     public static let name: String = "notifications/tools/list_changed"
 }

@@ -55,7 +55,7 @@ struct RoundtripTests {
         )
         await server.withMethodHandler(ListTools.self) { _ in
             return ListTools.Result(tools: [
-                Tool(
+                MCPTool(
                     name: "add",
                     description: "Adds two numbers together",
                     inputSchema: [
@@ -82,13 +82,13 @@ struct RoundtripTests {
         // Add resource handlers to server
         await server.withMethodHandler(ListResources.self) { _ in
             return ListResources.Result(resources: [
-                Resource(
+                MCPResource(
                     name: "Example Text",
                     uri: "test://example.txt",
                     description: "A test resource",
                     mimeType: "text/plain"
                 ),
-                Resource(
+                MCPResource(
                     name: "Test Data",
                     uri: "test://data.json",
                     description: "JSON test data",

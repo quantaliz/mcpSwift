@@ -850,7 +850,7 @@ struct MCPSamplingIntegrationTests {
             messages: validMessages,
             maxTokens: 100
         )
-        #expect(validParams.messages.count == 1)sampling
+        #expect(validParams.messages.count == 1)
         #expect(validParams.maxTokens == 100)
 
         // Test with comprehensive parameters

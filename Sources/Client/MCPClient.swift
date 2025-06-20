@@ -116,7 +116,7 @@ public actor MCPClient {
     private var instructions: String?
 
     /// A dictionary of type-erased notification handlers, keyed by method name
-    private var notificationHandlers: [String: [NotificationHandlerBox]] = [:]
+    private var notificationHandlers: [String: [MCPNotificationHandlerBox]] = [:]
     /// The task for the message handling loop
     private var task: Task<Void, Never>?
 
@@ -277,7 +277,7 @@ public actor MCPClient {
 
     /// Register a handler for a notification
     @discardableResult
-    public func onNotification<N: Notification>(
+    public func onNotification<N: MCPNotification>(
         _ type: N.Type,
         handler: @escaping @Sendable (MCPMessage<N>) async throws -> Void
     ) async -> Self {
@@ -287,7 +287,7 @@ public actor MCPClient {
     }
 
     /// Send a notification to the server
-    public func notify<N: Notification>(_ notification: MCPMessage<N>) async throws {
+    public func notify<N: MCPNotification>(_ notification: MCPMessage<N>) async throws {
         guard let connection = connection else {
             throw MCPError.internalError("Client connection not initialized")
         }
@@ -538,7 +538,7 @@ public actor MCPClient {
             }
         }
 
-        try await notify(InitializedNotification.message())
+        try await notify(MCPInitializeNotification.message())
 
         return result
     }
@@ -551,7 +551,7 @@ public actor MCPClient {
     // MARK: - Prompts
 
     public func getPrompt(name: String, arguments: [String: MCPValue]? = nil) async throws
-        -> (description: String?, messages: [Prompt.Message])
+        -> (description: String?, messages: [MCPPrompt.Message])
     {
         try validateServerCapability(\.prompts, "Prompts")
         let request = GetPrompt.request(.init(name: name, arguments: arguments))
@@ -560,7 +560,7 @@ public actor MCPClient {
     }
 
     public func listPrompts(cursor: String? = nil) async throws
-        -> (prompts: [Prompt], nextCursor: String?)
+        -> (prompts: [MCPPrompt], nextCursor: String?)
     {
         try validateServerCapability(\.prompts, "Prompts")
         let request: MCPRequest<ListPrompts>
@@ -575,7 +575,7 @@ public actor MCPClient {
 
     // MARK: - Resources
 
-    public func readResource(uri: String) async throws -> [Resource.Content] {
+    public func readResource(uri: String) async throws -> [MCPResource.Content] {
         try validateServerCapability(\.resources, "Resources")
         let request = ReadResource.request(.init(uri: uri))
         let result = try await send(request)
@@ -583,7 +583,7 @@ public actor MCPClient {
     }
 
     public func listResources(cursor: String? = nil) async throws -> (
-        resources: [Resource], nextCursor: String?
+        resources: [MCPResource], nextCursor: String?
     ) {
         try validateServerCapability(\.resources, "Resources")
         let request: MCPRequest<ListResources>
@@ -603,7 +603,7 @@ public actor MCPClient {
     }
 
     public func listResourceTemplates(cursor: String? = nil) async throws -> (
-        templates: [Resource.Template], nextCursor: String?
+        templates: [MCPResource.Template], nextCursor: String?
     ) {
         try validateServerCapability(\.resources, "Resources")
         let request: MCPRequest<ListResourceTemplates>
@@ -619,7 +619,7 @@ public actor MCPClient {
     // MARK: - Tools
 
     public func listTools(cursor: String? = nil) async throws -> (
-        tools: [Tool], nextCursor: String?
+        tools: [MCPTool], nextCursor: String?
     ) {
         try validateServerCapability(\.tools, "Tools")
         let request: MCPRequest<ListTools>
@@ -633,7 +633,7 @@ public actor MCPClient {
     }
 
     public func callTool(name: String, arguments: [String: MCPValue]? = nil) async throws -> (
-        content: [Tool.Content], isError: Bool?
+        content: [MCPTool.Content], isError: Bool?
     ) {
         try validateServerCapability(\.tools, "Tools")
         let request = CallTool.request(.init(name: name, arguments: arguments))

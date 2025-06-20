@@ -544,7 +544,7 @@ struct MCPClientTests {
         initTask.cancel()
 
         // Create a test notification
-        let notification = InitializedNotification.message()
+        let notification = MCPInitializeNotification.message()
         try await client.notify(notification)
 
         // Verify notification was sent (in addition to initialize and initialized notification)
@@ -553,12 +553,12 @@ struct MCPClientTests {
         if let sentMessage = await transport.sentMessages.last,
             let data = sentMessage.data(using: .utf8) {
 
-            // Decode as Message<InitializedNotification>
+            // Decode as Message<MCPInitializeNotification>
             let decoder = JSONDecoder()
             do {
                 let decodedNotification = try decoder.decode(
-                    MCPMessage<InitializedNotification>.self, from: data)
-                #expect(decodedNotification.method == InitializedNotification.name)
+                    MCPMessage<MCPInitializeNotification>.self, from: data)
+                #expect(decodedNotification.method == MCPInitializeNotification.name)
             } catch {
                 #expect(Bool(false), "Failed to decode notification: \(error)")
             }
@@ -611,8 +611,8 @@ struct MCPClientTests {
                         do {
                             let decoder = JSONDecoder()
                             let decodedNotification = try decoder.decode(
-                                MCPMessage<InitializedNotification>.self, from: notificationData)
-                            #expect(decodedNotification.method == InitializedNotification.name)
+                                MCPMessage<MCPInitializeNotification>.self, from: notificationData)
+                            #expect(decodedNotification.method == MCPInitializeNotification.name)
                         } catch {
                             #expect(Bool(false), "Failed to decode notification: \(error)")
                         }

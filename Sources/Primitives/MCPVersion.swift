@@ -15,6 +15,9 @@ import Foundation
 ///
 /// - SeeAlso: https://modelcontextprotocol.io/specification/2025-06-18
 public enum MCPVersion {
+    
+    static let jsonrpc = "2.0"
+    
     /// All protocol versions supported by this implementation, ordered from newest to oldest.
     static let supported: Set<String> = [
         "2024-11-05",
