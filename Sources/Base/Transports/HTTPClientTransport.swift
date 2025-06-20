@@ -314,14 +314,28 @@ public actor HTTPClientTransport: Transport {
                 try await self.processSSE(stream)
             } else if contentType.contains("application/json") {
                 // For JSON responses, collect and deliver the data
-                var buffer = Data()
-                for try await byte in stream {
-                    buffer.append(byte)
+                guard let length = httpResponse.expectedContentLength, length != NSURLSessionTransferSizeUnknown else {
+                    // If no valid content length, log warning and read until EOF
+                    var buffer = Data()
+                    for try await byte in stream {
+                        buffer.append(byte)
+                    }
+                    logger.trace("Received JSON response without Content-Length", metadata: ["size": .string("\(buffer.count)")])
+                    messageContinuation.yield(buffer)
+                    return
                 }
-                logger.trace("Received JSON response", metadata: ["size": .string("\(buffer.count)")])
+                
+                // If we have valid content length, read exactly that many bytes
+                let lengthInt = Int(length)
+                var buffer = Data(capacity: lengthInt)
+                if lengthInt > 0 {
+                    let chunk = try await stream.prefix(lengthInt).collect()
+                    buffer.append(contentsOf: chunk)
+                }
+                logger.trace("Received JSON response with Content-Length", metadata: ["size": .string("\(buffer.count)")])
                 messageContinuation.yield(buffer)
             } else {
-                logger.warning("Unexpected content type: $contentType)", metadata: [:])
+                logger.warning("Unexpected content type: \(contentType)", metadata: [:])
             }
         }
     #endif
