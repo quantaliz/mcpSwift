@@ -31,7 +31,7 @@ struct ClientTests {
                 let response = Initialize.response(
                     id: request.id,
                     result: .init(
-                        protocolVersion: Version.latest,
+                        protocolVersion: MCPVersion.latest,
                         capabilities: .init(),
                         serverInfo: .init(name: "TestServer", version: "1.0"),
                         instructions: nil
@@ -43,7 +43,7 @@ struct ClientTests {
 
         let result = try await client.connect(transport: transport)
         #expect(await transport.isConnected == true)
-        #expect(result.protocolVersion == Version.latest)
+        #expect(result.protocolVersion == MCPVersion.latest)
         await client.disconnect()
         #expect(await transport.isConnected == false)
         initTask.cancel()
@@ -67,7 +67,7 @@ struct ClientTests {
             let response = Initialize.response(
                 id: request.id,
                 result: .init(
-                    protocolVersion: Version.latest,
+                    protocolVersion: MCPVersion.latest,
                     capabilities: .init(),
                     serverInfo: .init(name: "TestServer", version: "1.0"),
                     instructions: nil
@@ -78,7 +78,7 @@ struct ClientTests {
 
             // Now complete the connect call which will automatically initialize
             let result = try await client.connect(transport: transport)
-            #expect(result.protocolVersion == Version.latest)
+            #expect(result.protocolVersion == MCPVersion.latest)
             #expect(result.serverInfo.name == "TestServer")
             #expect(result.serverInfo.version == "1.0")
 
@@ -139,7 +139,7 @@ struct ClientTests {
                 let response = Initialize.response(
                     id: request.id,
                     result: .init(
-                        protocolVersion: Version.latest,
+                        protocolVersion: MCPVersion.latest,
                         capabilities: .init(),
                         serverInfo: .init(name: "TestServer", version: "1.0"),
                         instructions: nil
@@ -188,7 +188,7 @@ struct ClientTests {
                 let response = Initialize.response(
                     id: request.id,
                     result: .init(
-                        protocolVersion: Version.latest,
+                        protocolVersion: MCPVersion.latest,
                         capabilities: .init(),
                         serverInfo: .init(name: "TestServer", version: "1.0"),
                         instructions: nil
@@ -243,7 +243,7 @@ struct ClientTests {
                 let response = Initialize.response(
                     id: request.id,
                     result: .init(
-                        protocolVersion: Version.latest,
+                        protocolVersion: MCPVersion.latest,
                         capabilities: .init(),
                         serverInfo: .init(name: "TestServer", version: "1.0"),
                         instructions: nil
@@ -332,7 +332,7 @@ struct ClientTests {
                 let response = Initialize.response(
                     id: request.id,
                     result: .init(
-                        protocolVersion: Version.latest,
+                        protocolVersion: MCPVersion.latest,
                         capabilities: .init(),
                         serverInfo: .init(name: "TestServer", version: "1.0"),
                         instructions: nil
@@ -411,7 +411,7 @@ struct ClientTests {
                 let response = Initialize.response(
                     id: request.id,
                     result: .init(
-                        protocolVersion: Version.latest,
+                        protocolVersion: MCPVersion.latest,
                         capabilities: .init(),
                         serverInfo: .init(name: "TestServer", version: "1.0"),
                         instructions: nil
@@ -490,7 +490,7 @@ struct ClientTests {
                 let response = Initialize.response(
                     id: request.id,
                     result: .init(
-                        protocolVersion: Version.latest,
+                        protocolVersion: MCPVersion.latest,
                         capabilities: .init(),
                         serverInfo: .init(name: "TestServer", version: "1.0"),
                         instructions: nil
@@ -529,7 +529,7 @@ struct ClientTests {
                 let response = Initialize.response(
                     id: request.id,
                     result: .init(
-                        protocolVersion: Version.latest,
+                        protocolVersion: MCPVersion.latest,
                         capabilities: .init(),
                         serverInfo: .init(name: "TestServer", version: "1.0"),
                         instructions: nil
@@ -587,7 +587,7 @@ struct ClientTests {
                 let response = Initialize.response(
                     id: request.id,
                     result: .init(
-                        protocolVersion: Version.latest,
+                        protocolVersion: MCPVersion.latest,
                         capabilities: .init(),
                         serverInfo: .init(name: "TestServer", version: "1.0"),
                         instructions: nil
@@ -661,7 +661,7 @@ struct ClientTests {
                 let response = Initialize.response(
                     id: request.id,
                     result: .init(
-                        protocolVersion: Version.latest,
+                        protocolVersion: MCPVersion.latest,
                         capabilities: .init(),
                         serverInfo: .init(name: "TestServer", version: "1.0"),
                         instructions: nil
@@ -721,7 +721,7 @@ struct ClientTests {
                 let response = Initialize.response(
                     id: request.id,
                     result: .init(
-                        protocolVersion: Version.latest,
+                        protocolVersion: MCPVersion.latest,
                         capabilities: .init(),
                         serverInfo: .init(name: "TestServer", version: "1.0"),
                         instructions: nil

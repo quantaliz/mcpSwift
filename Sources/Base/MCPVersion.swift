@@ -1,5 +1,5 @@
 //
-//  Versioning.swift
+//  MCPVersion.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -13,8 +13,8 @@ import Foundation
 /// following the format YYYY-MM-DD, to indicate
 /// the last date backwards incompatible changes were made.
 ///
-/// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2025-03-26/
-public enum Version {
+/// - SeeAlso: https://modelcontextprotocol.io/specification/2025-06-18
+public enum MCPVersion {
     /// All protocol versions supported by this implementation, ordered from newest to oldest.
     static let supported: Set<String> = [
         "2024-11-05",

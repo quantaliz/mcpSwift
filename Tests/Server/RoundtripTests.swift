@@ -116,7 +116,7 @@ struct RoundtripTests {
             #expect(result.serverInfo.version == "1.0.0")
             #expect(result.capabilities.prompts != nil)
             #expect(result.capabilities.tools != nil)
-            #expect(result.protocolVersion == Version.latest)
+            #expect(result.protocolVersion == MCPVersion.latest)
         }
         try await withThrowingTaskGroup(of: Void.self) { group in
             group.addTask {

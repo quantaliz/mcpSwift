@@ -612,7 +612,7 @@ import Testing
 
                     let requestID = json["id"] as! String
                     let result = Initialize.Result(
-                        protocolVersion: Version.latest,
+                        protocolVersion: MCPVersion.latest,
                         capabilities: .init(tools: .init()),
                         serverInfo: .init(name: "Mock Server", version: "0.0.1"),
                         instructions: nil
@@ -663,7 +663,7 @@ import Testing
 
             // Step 1: Initialize client
             let initResult = try await client.connect(transport: transport)
-            #expect(initResult.protocolVersion == Version.latest)
+            #expect(initResult.protocolVersion == MCPVersion.latest)
             #expect(initResult.capabilities.tools != nil)
 
             // Step 2: Call a tool

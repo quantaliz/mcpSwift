@@ -563,7 +563,7 @@ public actor Server {
 
             // Perform version negotiation
             let clientRequestedVersion = params.protocolVersion
-            let negotiatedProtocolVersion = Version.negotiate(
+            let negotiatedProtocolVersion = MCPVersion.negotiate(
                 clientRequestedVersion: clientRequestedVersion)
 
             // Set initial state with the negotiated protocol version

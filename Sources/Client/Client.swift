@@ -511,7 +511,7 @@ public actor Client {
     private func _initialize() async throws -> Initialize.Result {
         let request = Initialize.request(
             .init(
-                protocolVersion: Version.latest,
+                protocolVersion: MCPVersion.latest,
                 capabilities: capabilities,
                 clientInfo: clientInfo
             ))

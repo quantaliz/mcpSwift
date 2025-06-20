@@ -34,7 +34,7 @@ struct ServerTests {
         try await transport.queue(
             request: Initialize.request(
                 .init(
-                    protocolVersion: Version.latest,
+                    protocolVersion: MCPVersion.latest,
                     capabilities: .init(),
                     clientInfo: .init(name: "TestClient", version: "1.0")
                 )
@@ -89,7 +89,7 @@ struct ServerTests {
         try await transport.queue(
             request: Initialize.request(
                 .init(
-                    protocolVersion: Version.latest,
+                    protocolVersion: MCPVersion.latest,
                     capabilities: .init(),
                     clientInfo: .init(name: "TestClient", version: "1.0")
                 )
@@ -129,7 +129,7 @@ struct ServerTests {
         try await transport.queue(
             request: Initialize.request(
                 .init(
-                    protocolVersion: Version.latest,
+                    protocolVersion: MCPVersion.latest,
                     capabilities: .init(),
                     clientInfo: .init(name: "BlockedClient", version: "1.0")
                 )
@@ -162,7 +162,7 @@ struct ServerTests {
         try await transport.queue(
             request: Initialize.request(
                 .init(
-                    protocolVersion: Version.latest,
+                    protocolVersion: MCPVersion.latest,
                     capabilities: .init(),
                     clientInfo: .init(name: "TestClient", version: "1.0")
                 )
