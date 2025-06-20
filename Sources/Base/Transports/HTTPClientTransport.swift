@@ -470,35 +470,38 @@ public actor HTTPClientTransport: Transport {
     /// - Automatic reconnection on connection drops
     /// - Processing received events
     private func startListeningForServerEvents() async {
+        guard isConnected else { return }
+        
         #if os(Linux)
-            // SSE is not fully supported on Linux
+            // On Linux, treat SSE streaming as unsupported and return
             if streaming {
                 logger.warning(
                     "SSE streaming was requested but is not fully supported on Linux. SSE connection will not be attempted.",
                     metadata: [:]
                 )
             }
+            return
         #else
             // This is the original code for platforms that support SSE
-            guard isConnected else { return }
-            
             // Retry loop for connection drops
             while isConnected && !Task.isCancelled {
                 do {
                     try await connectToEventStream()
+                    // If connectToEventStream() returns, the connection was closed normally - break out
+                    break
+                } catch let error as StreamableHTTPTransportError {
+                    switch error {
+                    case .methodNotAllowed:
+                        logger.warning("Server does not support SSE GET - stopping event listener")
+                        break // breaks the switch, but not the while - we'll break again below
+                    }
+                    // Break out of the retry loop after handling transport error
+                    break
                 } catch {
-                    if let error = error as? StreamableHTTPTransportError {
-                        switch error {
-                        case .methodNotAllowed:
-                            logger.warning("Server does not support SSE GET - stopping event listener")
-                            break
-                        }
-                    } else {
-                        if !Task.isCancelled {
-                            logger.error("SSE connection error: \(error)")
-                            // Wait before retrying
-                            try? await Task.sleep(for: .seconds(1))
-                        }
+                    if !Task.isCancelled {
+                        logger.error("SSE connection error: \(error)")
+                        // Wait before retrying
+                        try? await Task.sleep(for: .seconds(1))
                     }
                 }
             }
