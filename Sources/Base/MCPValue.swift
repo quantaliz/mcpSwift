@@ -253,6 +253,12 @@ extension MCPValue: ExpressibleByStringInterpolation {
     }
 }
 
+extension MCPValue: NotRequired {
+    public init() {
+        self = .null
+    }
+}
+
 // MARK: - Standard Library Type Extensions
 
 extension Bool {

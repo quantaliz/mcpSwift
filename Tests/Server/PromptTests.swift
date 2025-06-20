@@ -36,7 +36,7 @@ struct PromptTests {
         #expect(prompt.arguments?[0].required == true)
     }
 
-    @Test("Prompt Message encoding and decoding")
+    @Test("Prompt MCPMessage encoding and decoding")
     func testPromptMessageEncodingDecoding() throws {
         let textMessage: Prompt.Message = .user("Hello, world!")
 
@@ -54,7 +54,7 @@ struct PromptTests {
         }
     }
 
-    @Test("Prompt Message Content types encoding and decoding")
+    @Test("Prompt MCPMessage Content types encoding and decoding")
     func testPromptMessageContentTypes() throws {
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
@@ -170,7 +170,7 @@ struct PromptTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<ListPrompts>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<ListPrompts>.self, from: data)
 
         #expect(decoded.id == "test-id")
         #expect(decoded.method == ListPrompts.name)
@@ -185,7 +185,7 @@ struct PromptTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<ListPrompts>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<ListPrompts>.self, from: data)
 
         #expect(decoded.id == "test-id")
         #expect(decoded.method == ListPrompts.name)
@@ -210,7 +210,7 @@ struct PromptTests {
         #expect(PromptListChangedNotification.name == "notifications/prompts/list_changed")
     }
 
-    @Test("Prompt Message factory methods")
+    @Test("Prompt MCPMessage factory methods")
     func testPromptMessageFactoryMethods() throws {
         // Test user message factory method
         let userMessage: Prompt.Message = .user("Hello, world!")
@@ -340,7 +340,7 @@ struct PromptTests {
         }
     }
 
-    @Test("Prompt Message factory methods with string interpolation")
+    @Test("Prompt MCPMessage factory methods with string interpolation")
     func testPromptMessageFactoryMethodsWithStringInterpolation() throws {
         let candidateName = "Bob"
         let position = "Data Scientist"

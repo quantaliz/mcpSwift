@@ -16,7 +16,7 @@ import class Foundation.JSONEncoder
 
 @Suite("Response Tests")
 struct ResponseTests {
-    struct TestMethod: Method {
+    struct TestMethod: MCPMethod {
         struct Parameters: Codable, Hashable, Sendable {
             let value: String
         }
@@ -26,7 +26,7 @@ struct ResponseTests {
         static let name = "test.method"
     }
 
-    struct EmptyMethod: Method {
+    struct EmptyMethod: MCPMethod {
         static let name = "empty.method"
     }
 
@@ -34,13 +34,13 @@ struct ResponseTests {
     func testSuccessResponse() throws {
         let id: MCPID = "test-id"
         let result = TestMethod.Result(success: true)
-        let response = Response<TestMethod>(id: id, result: result)
+        let response = MCPResponse<TestMethod>(id: id, result: result)
 
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(response)
-        let decoded = try decoder.decode(Response<TestMethod>.self, from: data)
+        let decoded = try decoder.decode(MCPResponse<TestMethod>.self, from: data)
 
         if case .success(let decodedResult) = decoded.result {
             #expect(decodedResult.success == true)
@@ -53,13 +53,13 @@ struct ResponseTests {
     func testErrorResponse() throws {
         let id: MCPID = "test-id"
         let error = MCPError.parseError(nil)
-        let response = Response<TestMethod>(id: id, error: error)
+        let response = MCPResponse<TestMethod>(id: id, error: error)
 
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(response)
-        let decoded = try decoder.decode(Response<TestMethod>.self, from: data)
+        let decoded = try decoder.decode(MCPResponse<TestMethod>.self, from: data)
 
         if case .failure(let decodedError) = decoded.result {
             #expect(decodedError.code == -32700)
@@ -75,13 +75,13 @@ struct ResponseTests {
     func testErrorResponseWithDetail() throws {
         let id: MCPID = "test-id"
         let error = MCPError.parseError("Invalid syntax")
-        let response = Response<TestMethod>(id: id, error: error)
+        let response = MCPResponse<TestMethod>(id: id, error: error)
 
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(response)
-        let decoded = try decoder.decode(Response<TestMethod>.self, from: data)
+        let decoded = try decoder.decode(MCPResponse<TestMethod>.self, from: data)
 
         if case .failure(let decodedError) = decoded.result {
             #expect(decodedError.code == -32700)
@@ -103,7 +103,7 @@ struct ResponseTests {
         let data = try encoder.encode(response)
 
         // Verify we can decode it back
-        let decoded = try decoder.decode(Response<EmptyMethod>.self, from: data)
+        let decoded = try decoder.decode(MCPResponse<EmptyMethod>.self, from: data)
         #expect(decoded.id == response.id)
     }
 
@@ -116,7 +116,7 @@ struct ResponseTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Response<EmptyMethod>.self, from: data)
+        let decoded = try decoder.decode(MCPResponse<EmptyMethod>.self, from: data)
 
         #expect(decoded.id == "test-id")
         if case .success = decoded.result {

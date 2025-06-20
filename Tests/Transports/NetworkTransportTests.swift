@@ -294,7 +294,7 @@ import Testing
             await transport.disconnect()
         }
 
-        @Test("Send Message")
+        @Test("Send MCPMessage")
         func testNetworkTransportSendMessage() async throws {
             let mockConnection = MockNetworkConnection()
             let transport = NetworkTransport(
@@ -320,7 +320,7 @@ import Testing
             await transport.disconnect()
         }
 
-        @Test("Receive Message")
+        @Test("Receive MCPMessage")
         func testNetworkTransportReceiveMessage() async throws {
             let mockConnection = MockNetworkConnection()
             let transport = NetworkTransport(
@@ -532,7 +532,7 @@ import Testing
             await transport.disconnect()
         }
 
-        @Test("Partial Message Reception")
+        @Test("Partial MCPMessage Reception")
         func testPartialMessageReception() async throws {
             let mockConnection = MockNetworkConnection()
             let transport = NetworkTransport(
@@ -569,7 +569,7 @@ import Testing
             await transport.disconnect()
         }
 
-        @Test("Large Message Handling")
+        @Test("Large MCPMessage Handling")
         func testLargeMessageHandling() async throws {
             let mockConnection = MockNetworkConnection()
             let transport = NetworkTransport(

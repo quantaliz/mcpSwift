@@ -178,7 +178,7 @@ public actor Client {
 
     /// Connect to the server using the given transport
     @discardableResult
-    public func connect(transport: any Transport) async throws -> Initialize.Result {
+    public func connect(transport: any Transport) async throws -> MCPInitialize.Result {
         self.connection = transport
         try await self.connection?.connect()
 
@@ -199,11 +199,11 @@ public actor Client {
 
                         // Attempt to decode data
                         // Try decoding as a batch response first
-                        if let batchResponse = try? decoder.decode([AnyResponse].self, from: data) {
+                        if let batchResponse = try? decoder.decode([AnyMCPResponse].self, from: data) {
                             await handleBatchResponse(batchResponse)
-                        } else if let response = try? decoder.decode(AnyResponse.self, from: data) {
+                        } else if let response = try? decoder.decode(AnyMCPResponse.self, from: data) {
                             await handleResponse(response)
-                        } else if let message = try? decoder.decode(AnyMessage.self, from: data) {
+                        } else if let message = try? decoder.decode(AnyMCPMessage.self, from: data) {
                             await handleMessage(message)
                         } else {
                             var metadata: Logger.Metadata = [:]
@@ -279,15 +279,15 @@ public actor Client {
     @discardableResult
     public func onNotification<N: Notification>(
         _ type: N.Type,
-        handler: @escaping @Sendable (Message<N>) async throws -> Void
+        handler: @escaping @Sendable (MCPMessage<N>) async throws -> Void
     ) async -> Self {
         let handlers = notificationHandlers[N.name, default: []]
-        notificationHandlers[N.name] = handlers + [TypedNotificationHandler(handler)]
+        notificationHandlers[N.name] = handlers + [TypedMCPNotificationHandler(handler)]
         return self
     }
 
     /// Send a notification to the server
-    public func notify<N: Notification>(_ notification: Message<N>) async throws {
+    public func notify<N: Notification>(_ notification: MCPMessage<N>) async throws {
         guard let connection = connection else {
             throw MCPError.internalError("Client connection not initialized")
         }
@@ -299,7 +299,7 @@ public actor Client {
     // MARK: - Requests
 
     /// Send a request and receive its response
-    public func send<M: Method>(_ request: Request<M>) async throws -> M.Result {
+    public func send<M: MCPMethod>(_ request: MCPRequest<M>) async throws -> M.Result {
         guard let connection = connection else {
             throw MCPError.internalError("Client connection not initialized")
         }
@@ -355,7 +355,7 @@ public actor Client {
     /// of the ``Client/withBatch(_:)`` method.
     public actor Batch {
         unowned let client: Client
-        var requests: [AnyRequest] = []
+        var requests: [AnyMCPRequest] = []
 
         init(client: Client) {
             self.client = client
@@ -364,10 +364,10 @@ public actor Client {
         /// Adds a request to the batch and prepares its expected response task.
         /// The actual sending happens when the `withBatch` scope completes.
         /// - Returns: A `Task` that will eventually produce the result or throw an error.
-        public func addRequest<M: Method>(_ request: Request<M>) async throws -> Task<
+        public func addRequest<M: MCPMethod>(_ request: MCPRequest<M>) async throws -> Task<
             M.Result, Swift.Error
         > {
-            requests.append(try AnyRequest(request))
+            requests.append(try AnyMCPRequest(request))
 
             // Return a Task that registers the pending request and awaits its result.
             // The continuation is resumed when the response arrives.
@@ -504,13 +504,13 @@ public actor Client {
         message:
             "Initialization now happens automatically during connect. Use connect(transport:) instead."
     )
-    public func initialize() async throws -> Initialize.Result {
+    public func initialize() async throws -> MCPInitialize.Result {
         return try await _initialize()
     }
 
     /// Internal initialization implementation
-    private func _initialize() async throws -> Initialize.Result {
-        let request = Initialize.request(
+    private func _initialize() async throws -> MCPInitialize.Result {
+        let request = MCPInitialize.request(
             .init(
                 protocolVersion: MCPVersion.latest,
                 capabilities: capabilities,
@@ -563,7 +563,7 @@ public actor Client {
         -> (prompts: [Prompt], nextCursor: String?)
     {
         try validateServerCapability(\.prompts, "Prompts")
-        let request: Request<ListPrompts>
+        let request: MCPRequest<ListPrompts>
         if let cursor = cursor {
             request = ListPrompts.request(.init(cursor: cursor))
         } else {
@@ -586,7 +586,7 @@ public actor Client {
         resources: [Resource], nextCursor: String?
     ) {
         try validateServerCapability(\.resources, "Resources")
-        let request: Request<ListResources>
+        let request: MCPRequest<ListResources>
         if let cursor = cursor {
             request = ListResources.request(.init(cursor: cursor))
         } else {
@@ -606,7 +606,7 @@ public actor Client {
         templates: [Resource.Template], nextCursor: String?
     ) {
         try validateServerCapability(\.resources, "Resources")
-        let request: Request<ListResourceTemplates>
+        let request: MCPRequest<ListResourceTemplates>
         if let cursor = cursor {
             request = ListResourceTemplates.request(.init(cursor: cursor))
         } else {
@@ -622,7 +622,7 @@ public actor Client {
         tools: [Tool], nextCursor: String?
     ) {
         try validateServerCapability(\.tools, "Tools")
-        let request: Request<ListTools>
+        let request: MCPRequest<ListTools>
         if let cursor = cursor {
             request = ListTools.request(.init(cursor: cursor))
         } else {
@@ -682,7 +682,7 @@ public actor Client {
 
     // MARK: -
 
-    private func handleResponse(_ response: Response<AnyMethod>) async {
+    private func handleResponse(_ response: MCPResponse<AnyMCPMethod>) async {
         await logger?.trace(
             "Processing response",
             metadata: ["id": "\(response.id)"])
@@ -707,7 +707,7 @@ public actor Client {
         }
     }
 
-    private func handleMessage(_ message: Message<AnyNotification>) async {
+    private func handleMessage(_ message: MCPMessage<AnyMCPNotification>) async {
         await logger?.trace(
             "Processing notification",
             metadata: ["method": "\(message.method)"])
@@ -751,7 +751,7 @@ public actor Client {
     }
 
     // Add handler for batch responses
-    private func handleBatchResponse(_ responses: [AnyResponse]) async {
+    private func handleBatchResponse(_ responses: [AnyMCPResponse]) async {
         await logger?.trace("Processing batch response", metadata: ["count": "\(responses.count)"])
         for response in responses {
             // Attempt to remove the pending request.

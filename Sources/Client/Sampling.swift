@@ -180,7 +180,7 @@ extension Sampling.Message.Content: ExpressibleByStringInterpolation {
 
 /// To request sampling from a client, servers send a `sampling/createMessage` request.
 /// - SeeAlso: https://modelcontextprotocol.io/docs/concepts/sampling#how-sampling-works
-public enum CreateSamplingMessage: Method {
+public enum CreateSamplingMessage: MCPMethod {
     public static let name = "sampling/createMessage"
 
     public struct Parameters: Hashable, Codable, Sendable {

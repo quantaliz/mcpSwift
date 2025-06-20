@@ -143,7 +143,7 @@ public actor Server {
     public var configuration: Configuration
 
     /// Request handlers
-    private var methodHandlers: [String: RequestHandlerBox] = [:]
+    private var methodHandlers: [String: MCPRequestHandlerBox] = [:]
     /// Notification handlers
     private var notificationHandlers: [String: [NotificationHandlerBox]] = [:]
 
@@ -199,9 +199,9 @@ public actor Server {
                         let decoder = JSONDecoder()
                         if let batch = try? decoder.decode(Server.Batch.self, from: data) {
                             try await handleBatch(batch)
-                        } else if let request = try? decoder.decode(AnyRequest.self, from: data) {
+                        } else if let request = try? decoder.decode(AnyMCPRequest.self, from: data) {
                             _ = try await handleRequest(request, sendResponse: true)
-                        } else if let message = try? decoder.decode(AnyMessage.self, from: data) {
+                        } else if let message = try? decoder.decode(AnyMCPMessage.self, from: data) {
                             try await handleMessage(message)
                         } else {
                             // Try to extract request ID from raw JSON if possible
@@ -224,7 +224,7 @@ public actor Server {
                     } catch {
                         await logger?.error(
                             "Error processing message", metadata: ["error": "\(error)"])
-                        let response = AnyMethod.response(
+                        let response = AnyMCPMethod.response(
                             id: requestID ?? .random,
                             error: error as? MCPError
                                 ?? MCPError.internalError(error.localizedDescription)
@@ -258,13 +258,13 @@ public actor Server {
 
     /// Register a method handler
     @discardableResult
-    public func withMethodHandler<M: Method>(
+    public func withMethodHandler<M: MCPMethod>(
         _ type: M.Type,
         handler: @escaping @Sendable (M.Parameters) async throws -> M.Result
     ) -> Self {
-        methodHandlers[M.name] = TypedRequestHandler { (request: Request<M>) -> Response<M> in
+        methodHandlers[M.name] = TypedMCPRequestHandler { (request: MCPRequest<M>) -> MCPResponse<M> in
             let result = try await handler(request.params)
-            return Response(id: request.id, result: result)
+            return MCPResponse(id: request.id, result: result)
         }
         return self
     }
@@ -273,17 +273,17 @@ public actor Server {
     @discardableResult
     public func onNotification<N: Notification>(
         _ type: N.Type,
-        handler: @escaping @Sendable (Message<N>) async throws -> Void
+        handler: @escaping @Sendable (MCPMessage<N>) async throws -> Void
     ) -> Self {
         let handlers = notificationHandlers[N.name, default: []]
-        notificationHandlers[N.name] = handlers + [TypedNotificationHandler(handler)]
+        notificationHandlers[N.name] = handlers + [TypedMCPNotificationHandler(handler)]
         return self
     }
 
     // MARK: - Sending
 
     /// Send a response to a request
-    public func send<M: Method>(_ response: Response<M>) async throws {
+    public func send<M: MCPMethod>(_ response: MCPResponse<M>) async throws {
         guard let connection = connection else {
             throw MCPError.internalError("Server connection not initialized")
         }
@@ -296,7 +296,7 @@ public actor Server {
     }
 
     /// Send a notification to connected clients
-    public func notify<N: Notification>(_ notification: Message<N>) async throws {
+    public func notify<N: Notification>(_ notification: MCPMessage<N>) async throws {
         guard let connection = connection else {
             throw MCPError.internalError("Server connection not initialized")
         }
@@ -375,8 +375,8 @@ public actor Server {
     struct Batch: Sendable {
         /// An item in a JSON-RPC batch
         enum Item: Sendable {
-            case request(Request<AnyMethod>)
-            case notification(Message<AnyNotification>)
+            case request(MCPRequest<AnyMCPMethod>)
+            case notification(MCPMessage<AnyMCPNotification>)
 
         }
 
@@ -390,13 +390,13 @@ public actor Server {
         if batch.items.isEmpty {
             // Empty batch is invalid according to JSON-RPC spec
             let error = MCPError.invalidRequest("Batch array must not be empty")
-            let response = AnyMethod.response(id: .random, error: error)
+            let response = AnyMCPMethod.response(id: .random, error: error)
             try await send(response)
             return
         }
 
         // Process each item in the batch and collect responses
-        var responses: [Response<AnyMethod>] = []
+        var responses: [MCPResponse<AnyMCPMethod>] = []
 
         for item in batch.items {
             do {
@@ -416,7 +416,7 @@ public actor Server {
                 if case .request(let request) = item {
                     let mcpError =
                         error as? MCPError ?? MCPError.internalError(error.localizedDescription)
-                    responses.append(AnyMethod.response(id: request.id, error: mcpError))
+                    responses.append(AnyMCPMethod.response(id: request.id, error: mcpError))
                 }
             }
         }
@@ -443,13 +443,13 @@ public actor Server {
     ///   - request: The request to handle
     ///   - sendResponse: Whether to send the response immediately (true) or return it (false)
     /// - Returns: The response when sendResponse is false
-    private func handleRequest(_ request: Request<AnyMethod>, sendResponse: Bool = true)
-        async throws -> Response<AnyMethod>?
+    private func handleRequest(_ request: MCPRequest<AnyMCPMethod>, sendResponse: Bool = true)
+        async throws -> MCPResponse<AnyMCPMethod>?
     {
         // Check if this is a pre-processed error request (empty method)
         if request.method.isEmpty && !sendResponse {
             // This is a placeholder for an invalid request that couldn't be parsed in batch mode
-            return AnyMethod.response(
+            return AnyMCPMethod.response(
                 id: request.id,
                 error: MCPError.invalidRequest("Invalid batch item format")
             )
@@ -466,7 +466,7 @@ public actor Server {
             // The client SHOULD NOT send requests other than pings
             // before the server has responded to the initialize request.
             switch request.method {
-            case Initialize.name, MCPPing.name:
+            case MCPInitialize.name, MCPPing.name:
                 break
             default:
                 try checkInitialized()
@@ -476,7 +476,7 @@ public actor Server {
         // Find handler for method name
         guard let handler = methodHandlers[request.method] else {
             let error = MCPError.methodNotFound("Unknown method: \(request.method)")
-            let response = AnyMethod.response(id: request.id, error: error)
+            let response = AnyMCPMethod.response(id: request.id, error: error)
 
             if sendResponse {
                 try await send(response)
@@ -498,7 +498,7 @@ public actor Server {
             return response
         } catch {
             let mcpError = error as? MCPError ?? MCPError.internalError(error.localizedDescription)
-            let response = AnyMethod.response(id: request.id, error: mcpError)
+            let response = AnyMCPMethod.response(id: request.id, error: mcpError)
 
             if sendResponse {
                 try await send(response)
@@ -509,7 +509,7 @@ public actor Server {
         }
     }
 
-    private func handleMessage(_ message: Message<AnyNotification>) async throws {
+    private func handleMessage(_ message: MCPMessage<AnyMCPNotification>) async throws {
         await logger?.trace(
             "Processing notification",
             metadata: ["method": "\(message.method)"])
@@ -549,7 +549,7 @@ public actor Server {
         initializeHook: (@Sendable (Client.Info, Client.Capabilities) async throws -> Void)?
     ) {
         // Initialize
-        withMethodHandler(Initialize.self) { [weak self] params in
+        withMethodHandler(MCPInitialize.self) { [weak self] params in
             guard let self = self else {
                 throw MCPError.internalError("Server was deallocated")
             }
@@ -575,7 +575,7 @@ public actor Server {
                 protocolVersion: negotiatedProtocolVersion
             )
 
-            return Initialize.Result(
+            return MCPInitialize.Result(
                 protocolVersion: negotiatedProtocolVersion,
                 capabilities: await self.capabilities,
                 serverInfo: self.serverInfo,
@@ -630,9 +630,9 @@ extension Server.Batch.Item: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         // Check if it's a request (has id) or notification (no id)
         if container.contains(.id) {
-            self = .request(try Request<AnyMethod>(from: decoder))
+            self = .request(try MCPRequest<AnyMCPMethod>(from: decoder))
         } else {
-            self = .notification(try Message<AnyNotification>(from: decoder))
+            self = .notification(try MCPMessage<AnyMCPNotification>(from: decoder))
         }
     }
 

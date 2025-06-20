@@ -105,7 +105,7 @@ struct ResourceTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<ListResources>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<ListResources>.self, from: data)
 
         #expect(decoded.id == "test-id")
         #expect(decoded.method == ListResources.name)
@@ -120,7 +120,7 @@ struct ResourceTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<ListResources>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<ListResources>.self, from: data)
 
         #expect(decoded.id == "test-id")
         #expect(decoded.method == ListResources.name)

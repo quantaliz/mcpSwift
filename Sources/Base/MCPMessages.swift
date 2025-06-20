@@ -20,16 +20,10 @@ public struct Empty: NotRequired, Hashable, Codable, Sendable {
     public init() {}
 }
 
-extension MCPValue: NotRequired {
-    public init() {
-        self = .null
-    }
-}
-
 // MARK: -
 
 /// A method that can be used to send requests and receive responses.
-public protocol Method {
+public protocol MCPMethod {
     /// The parameters of the method.
     associatedtype Parameters: Codable, Hashable, Sendable = Empty
     /// The result of the method.
@@ -39,46 +33,46 @@ public protocol Method {
 }
 
 /// Type-erased method for request/response handling
-struct AnyMethod: Method, Sendable {
+struct AnyMCPMethod: MCPMethod, Sendable {
     static var name: String { "" }
     typealias Parameters = MCPValue
     typealias Result = MCPValue
 }
 
-extension Method where Parameters == Empty {
-    public static func request(id: MCPID = .random) -> Request<Self> {
-        Request(id: id, method: name, params: Empty())
+extension MCPMethod where Parameters == Empty {
+    public static func request(id: MCPID = .random) -> MCPRequest<Self> {
+        MCPRequest(id: id, method: name, params: Empty())
     }
 }
 
-extension Method where Result == Empty {
-    public static func response(id: MCPID) -> Response<Self> {
-        Response(id: id, result: Empty())
+extension MCPMethod where Result == Empty {
+    public static func response(id: MCPID) -> MCPResponse<Self> {
+        MCPResponse(id: id, result: Empty())
     }
 }
 
-extension Method {
+extension MCPMethod {
     /// Create a request with the given parameters.
-    public static func request(id: MCPID = .random, _ parameters: Self.Parameters) -> Request<Self>
+    public static func request(id: MCPID = .random, _ parameters: Self.Parameters) -> MCPRequest<Self>
     {
-        Request(id: id, method: name, params: parameters)
+        MCPRequest(id: id, method: name, params: parameters)
     }
 
     /// Create a response with the given result.
-    public static func response(id: MCPID, result: Self.Result) -> Response<Self> {
-        Response(id: id, result: result)
+    public static func response(id: MCPID, result: Self.Result) -> MCPResponse<Self> {
+        MCPResponse(id: id, result: result)
     }
 
     /// Create a response with the given error.
-    public static func response(id: MCPID, error: MCPError) -> Response<Self> {
-        Response(id: id, error: error)
+    public static func response(id: MCPID, error: MCPError) -> MCPResponse<Self> {
+        MCPResponse(id: id, error: error)
     }
 }
 
 // MARK: -
 
 /// A request message.
-public struct Request<M: Method>: Hashable, Identifiable, Codable, Sendable {
+public struct MCPRequest<M: MCPMethod>: Hashable, Identifiable, Codable, Sendable {
     /// The request ID.
     public let id: MCPID
     /// The method name.
@@ -105,7 +99,7 @@ public struct Request<M: Method>: Hashable, Identifiable, Codable, Sendable {
     }
 }
 
-extension Request {
+extension MCPRequest {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let version = try container.decode(String.self, forKey: .jsonrpc)
@@ -147,41 +141,41 @@ extension Request {
 }
 
 /// A type-erased request for request/response handling
-typealias AnyRequest = Request<AnyMethod>
+typealias AnyMCPRequest = MCPRequest<AnyMCPMethod>
 
-extension AnyRequest {
-    init<T: Method>(_ request: Request<T>) throws {
+extension AnyMCPRequest {
+    init<T: MCPMethod>(_ request: MCPRequest<T>) throws {
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(request)
-        self = try decoder.decode(AnyRequest.self, from: data)
+        self = try decoder.decode(AnyMCPRequest.self, from: data)
     }
 }
 
 /// A box for request handlers that can be type-erased
-class RequestHandlerBox: @unchecked Sendable {
-    func callAsFunction(_ request: AnyRequest) async throws -> AnyResponse {
+class MCPRequestHandlerBox: @unchecked Sendable {
+    func callAsFunction(_ request: AnyMCPRequest) async throws -> AnyMCPResponse {
         fatalError("Must override")
     }
 }
 
 /// A typed request handler that can be used to handle requests of a specific type
-final class TypedRequestHandler<M: Method>: RequestHandlerBox, @unchecked Sendable {
-    private let _handle: @Sendable (Request<M>) async throws -> Response<M>
+final class TypedMCPRequestHandler<M: MCPMethod>: MCPRequestHandlerBox, @unchecked Sendable {
+    private let _handle: @Sendable (MCPRequest<M>) async throws -> MCPResponse<M>
 
-    init(_ handler: @escaping @Sendable (Request<M>) async throws -> Response<M>) {
+    init(_ handler: @escaping @Sendable (MCPRequest<M>) async throws -> MCPResponse<M>) {
         self._handle = handler
         super.init()
     }
 
-    override func callAsFunction(_ request: AnyRequest) async throws -> AnyResponse {
+    override func callAsFunction(_ request: AnyMCPRequest) async throws -> AnyMCPResponse {
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
         // Create a concrete request from the type-erased one
         let data = try encoder.encode(request)
-        let request = try decoder.decode(Request<M>.self, from: data)
+        let request = try decoder.decode(MCPRequest<M>.self, from: data)
 
         // Handle with concrete type
         let response = try await _handle(request)
@@ -191,9 +185,9 @@ final class TypedRequestHandler<M: Method>: RequestHandlerBox, @unchecked Sendab
         case .success(let result):
             let resultData = try encoder.encode(result)
             let resultValue = try decoder.decode(MCPValue.self, from: resultData)
-            return Response(id: response.id, result: resultValue)
+            return MCPResponse(id: response.id, result: resultValue)
         case .failure(let error):
-            return Response(id: response.id, error: error)
+            return MCPResponse(id: response.id, error: error)
         }
     }
 }
@@ -201,7 +195,7 @@ final class TypedRequestHandler<M: Method>: RequestHandlerBox, @unchecked Sendab
 // MARK: -
 
 /// A response message.
-public struct Response<M: Method>: Hashable, Identifiable, Codable, Sendable {
+public struct MCPResponse<M: MCPMethod>: Hashable, Identifiable, Codable, Sendable {
     /// The response ID.
     public let id: MCPID
     /// The response result.
@@ -255,10 +249,10 @@ public struct Response<M: Method>: Hashable, Identifiable, Codable, Sendable {
 }
 
 /// A type-erased response for request/response handling
-typealias AnyResponse = Response<AnyMethod>
+typealias AnyMCPResponse = MCPResponse<AnyMCPMethod>
 
-extension AnyResponse {
-    init<T: Method>(_ response: Response<T>) throws {
+extension AnyMCPResponse {
+    init<T: MCPMethod>(_ response: MCPResponse<T>) throws {
         // Instead of re-encoding/decoding which might double-wrap the error,
         // directly transfer the properties
         self.id = response.id
@@ -286,23 +280,23 @@ public protocol Notification: Hashable, Codable, Sendable {
 }
 
 /// A type-erased notification for message handling
-struct AnyNotification: Notification, Sendable {
+struct AnyMCPNotification: Notification, Sendable {
     static var name: String { "" }
     typealias Parameters = MCPValue
 }
 
-extension AnyNotification {
+extension AnyMCPNotification {
     init(_ notification: some Notification) throws {
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(notification)
-        self = try decoder.decode(AnyNotification.self, from: data)
+        self = try decoder.decode(AnyMCPNotification.self, from: data)
     }
 }
 
 /// A message that can be used to send notifications.
-public struct Message<N: Notification>: Hashable, Codable, Sendable {
+public struct MCPMessage<N: Notification>: Hashable, Codable, Sendable {
     /// The method name.
     public let method: String
     /// The notification parameters.
@@ -366,42 +360,42 @@ public struct Message<N: Notification>: Hashable, Codable, Sendable {
 }
 
 /// A type-erased message for message handling
-typealias AnyMessage = Message<AnyNotification>
+typealias AnyMCPMessage = MCPMessage<AnyMCPNotification>
 
 extension Notification where Parameters == Empty {
     /// Create a message with empty parameters.
-    public static func message() -> Message<Self> {
-        Message(method: name, params: Empty())
+    public static func message() -> MCPMessage<Self> {
+        MCPMessage(method: name, params: Empty())
     }
 }
 
 extension Notification {
     /// Create a message with the given parameters.
-    public static func message(_ parameters: Parameters) -> Message<Self> {
-        Message(method: name, params: parameters)
+    public static func message(_ parameters: Parameters) -> MCPMessage<Self> {
+        MCPMessage(method: name, params: parameters)
     }
 }
 
 /// A box for notification handlers that can be type-erased
 class NotificationHandlerBox: @unchecked Sendable {
-    func callAsFunction(_ notification: Message<AnyNotification>) async throws {}
+    func callAsFunction(_ notification: MCPMessage<AnyMCPNotification>) async throws {}
 }
 
 /// A typed notification handler that can be used to handle notifications of a specific type
-final class TypedNotificationHandler<N: Notification>: NotificationHandlerBox,
+final class TypedMCPNotificationHandler<N: Notification>: NotificationHandlerBox,
     @unchecked Sendable
 {
-    private let _handle: @Sendable (Message<N>) async throws -> Void
+    private let _handle: @Sendable (MCPMessage<N>) async throws -> Void
 
-    init(_ handler: @escaping @Sendable (Message<N>) async throws -> Void) {
+    init(_ handler: @escaping @Sendable (MCPMessage<N>) async throws -> Void) {
         self._handle = handler
         super.init()
     }
 
-    override func callAsFunction(_ notification: Message<AnyNotification>) async throws {
+    override func callAsFunction(_ notification: MCPMessage<AnyMCPNotification>) async throws {
         // Create a concrete notification from the type-erased one
         let data = try JSONEncoder().encode(notification)
-        let typedNotification = try JSONDecoder().decode(Message<N>.self, from: data)
+        let typedNotification = try JSONDecoder().decode(MCPMessage<N>.self, from: data)
 
         try await _handle(typedNotification)
     }

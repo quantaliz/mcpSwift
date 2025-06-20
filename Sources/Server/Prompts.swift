@@ -209,7 +209,7 @@ extension Prompt.Message.Content: ExpressibleByStringInterpolation {
 
 /// To retrieve available prompts, clients send a `prompts/list` request.
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/prompts/#listing-prompts
-public enum ListPrompts: Method {
+public enum ListPrompts: MCPMethod {
     public static let name: String = "prompts/list"
 
     public struct Parameters: NotRequired, Hashable, Codable, Sendable {
@@ -238,7 +238,7 @@ public enum ListPrompts: Method {
 /// To retrieve a specific prompt, clients send a `prompts/get` request.
 /// Arguments may be auto-completed through the completion API.
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/prompts/#getting-a-prompt
-public enum GetPrompt: Method {
+public enum GetPrompt: MCPMethod {
     public static let name: String = "prompts/get"
 
     public struct Parameters: Hashable, Codable, Sendable {

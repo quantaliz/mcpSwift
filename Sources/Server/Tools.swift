@@ -214,7 +214,7 @@ public struct Tool: Hashable, Codable, Sendable {
 
 /// To discover available tools, clients send a `tools/list` request.
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/tools/#listing-tools
-public enum ListTools: Method {
+public enum ListTools: MCPMethod {
     public static let name = "tools/list"
 
     public struct Parameters: NotRequired, Hashable, Codable, Sendable {
@@ -242,7 +242,7 @@ public enum ListTools: Method {
 
 /// To call a tool, clients send a `tools/call` request.
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/tools/#calling-tools
-public enum CallTool: Method {
+public enum CallTool: MCPMethod {
     public static let name = "tools/call"
 
     public struct Parameters: Hashable, Codable, Sendable {

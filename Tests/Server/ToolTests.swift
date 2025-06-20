@@ -309,7 +309,7 @@ struct ToolTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<ListTools>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<ListTools>.self, from: data)
 
         #expect(decoded.id == "test-id")
         #expect(decoded.method == ListTools.name)
@@ -324,7 +324,7 @@ struct ToolTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<ListTools>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<ListTools>.self, from: data)
 
         #expect(decoded.id == "test-id")
         #expect(decoded.method == ListTools.name)
@@ -401,9 +401,9 @@ struct ToolTests {
             """
         let jsonData = jsonString.data(using: .utf8)!
 
-        let anyRequest = try JSONDecoder().decode(AnyRequest.self, from: jsonData)
+        let anyRequest = try JSONDecoder().decode(AnyMCPRequest.self, from: jsonData)
 
-        let handler = TypedRequestHandler<ListTools> { request in
+        let handler = TypedMCPRequestHandler<ListTools> { request in
             #expect(request.method == ListTools.name)
             #expect(request.id == 1)
             #expect(request.params.cursor == nil)

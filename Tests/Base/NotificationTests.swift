@@ -39,7 +39,7 @@ struct NotificationTests {
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(notification)
-        let decoded = try decoder.decode(Message<TestNotification>.self, from: data)
+        let decoded = try decoder.decode(MCPMessage<TestNotification>.self, from: data)
 
         #expect(decoded.method == notification.method)
         #expect(decoded.params.event == notification.params.event)
@@ -57,7 +57,7 @@ struct NotificationTests {
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(notification)
-        let decoded = try decoder.decode(Message<EmptyNotification>.self, from: data)
+        let decoded = try decoder.decode(MCPMessage<EmptyNotification>.self, from: data)
 
         #expect(decoded.method == notification.method)
     }
@@ -78,7 +78,7 @@ struct NotificationTests {
         #expect(json.count == 2, "Should only contain jsonrpc and method fields")
 
         // Verify we can decode it back
-        let decoded = try decoder.decode(Message<InitializedNotification>.self, from: data)
+        let decoded = try decoder.decode(MCPMessage<InitializedNotification>.self, from: data)
         #expect(decoded.method == InitializedNotification.name)
     }
 
@@ -91,7 +91,7 @@ struct NotificationTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Message<InitializedNotification>.self, from: data)
+        let decoded = try decoder.decode(MCPMessage<InitializedNotification>.self, from: data)
 
         #expect(decoded.method == InitializedNotification.name)
     }
@@ -117,7 +117,7 @@ struct NotificationTests {
         #expect(json.count == 3, "Should contain jsonrpc, method, and params fields")
 
         // Verify we can decode it back
-        let decoded = try decoder.decode(Message<ResourceUpdatedNotification>.self, from: data)
+        let decoded = try decoder.decode(MCPMessage<ResourceUpdatedNotification>.self, from: data)
         #expect(decoded.method == ResourceUpdatedNotification.name)
         #expect(decoded.params.uri == "test://resource")
     }
@@ -131,7 +131,7 @@ struct NotificationTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(AnyMessage.self, from: data)
+        let decoded = try decoder.decode(AnyMCPMessage.self, from: data)
 
         #expect(decoded.method == InitializedNotification.name)
     }
@@ -145,7 +145,7 @@ struct NotificationTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(AnyMessage.self, from: data)
+        let decoded = try decoder.decode(AnyMCPMessage.self, from: data)
 
         #expect(decoded.method == InitializedNotification.name)
     }
@@ -159,7 +159,7 @@ struct NotificationTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(AnyMessage.self, from: data)
+        let decoded = try decoder.decode(AnyMCPMessage.self, from: data)
 
         #expect(decoded.method == InitializedNotification.name)
     }
@@ -173,7 +173,7 @@ struct NotificationTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(AnyMessage.self, from: data)
+        let decoded = try decoder.decode(AnyMCPMessage.self, from: data)
 
         #expect(decoded.method == ResourceUpdatedNotification.name)
         #expect(decoded.params.objectValue?["uri"]?.stringValue == "test://resource")

@@ -611,13 +611,13 @@ import Testing
                     await tracker.setRequest(.initialize)
 
                     let requestID = json["id"] as! String
-                    let result = Initialize.Result(
+                    let result = MCPInitialize.Result(
                         protocolVersion: MCPVersion.latest,
                         capabilities: .init(tools: .init()),
                         serverInfo: .init(name: "Mock Server", version: "0.0.1"),
                         instructions: nil
                     )
-                    let response = Initialize.response(id: .string(requestID), result: result)
+                    let response = MCPInitialize.response(id: .string(requestID), result: result)
                     let responseData = try JSONEncoder().encode(response)
 
                     let httpResponse = HTTPURLResponse(

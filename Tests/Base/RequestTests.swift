@@ -16,7 +16,7 @@ import class Foundation.JSONEncoder
 
 @Suite("Request Tests")
 struct RequestTests {
-    struct TestMethod: Method {
+    struct TestMethod: MCPMethod {
         struct Parameters: Codable, Hashable, Sendable {
             let value: String
         }
@@ -26,7 +26,7 @@ struct RequestTests {
         static let name = "test.method"
     }
 
-    struct EmptyMethod: Method {
+    struct EmptyMethod: MCPMethod {
         static let name = "empty.method"
     }
 
@@ -34,7 +34,7 @@ struct RequestTests {
     func testRequestInitialization() throws {
         let id: MCPID = 1
         let params = CallTool.Parameters(name: "test-tool")
-        let request = Request<CallTool>(id: id, method: CallTool.name, params: params)
+        let request = MCPRequest<CallTool>(id: id, method: CallTool.name, params: params)
 
         #expect(request.id == id)
         #expect(request.method == CallTool.name)
@@ -49,7 +49,7 @@ struct RequestTests {
         let decoder = JSONDecoder()
 
         let data = try encoder.encode(request)
-        let decoded = try decoder.decode(Request<CallTool>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<CallTool>.self, from: data)
 
         #expect(decoded.id == request.id)
         #expect(decoded.method == request.method)
@@ -66,7 +66,7 @@ struct RequestTests {
         let data = try encoder.encode(request)
 
         // Verify we can decode it back
-        let decoded = try decoder.decode(Request<EmptyMethod>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<EmptyMethod>.self, from: data)
         #expect(decoded.id == request.id)
         #expect(decoded.method == request.method)
     }
@@ -80,7 +80,7 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<EmptyMethod>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<EmptyMethod>.self, from: data)
 
         #expect(decoded.id == 1)
         #expect(decoded.method == EmptyMethod.name)
@@ -95,7 +95,7 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<MCPPing>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<MCPPing>.self, from: data)
 
         #expect(decoded.id == 1)
         #expect(decoded.method == MCPPing.name)
@@ -110,7 +110,7 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<MCPPing>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<MCPPing>.self, from: data)
 
         #expect(decoded.id == 1)
         #expect(decoded.method == MCPPing.name)
@@ -125,7 +125,7 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<MCPPing>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<MCPPing>.self, from: data)
 
         #expect(decoded.id == 1)
         #expect(decoded.method == MCPPing.name)
@@ -140,7 +140,7 @@ struct RequestTests {
 
         let decoder = JSONDecoder()
         #expect(throws: DecodingError.self) {
-            _ = try decoder.decode(Request<CallTool>.self, from: data)
+            _ = try decoder.decode(MCPRequest<CallTool>.self, from: data)
         }
     }
 
@@ -153,7 +153,7 @@ struct RequestTests {
 
         let decoder = JSONDecoder()
         #expect(throws: DecodingError.self) {
-            _ = try decoder.decode(Request<CallTool>.self, from: data)
+            _ = try decoder.decode(MCPRequest<CallTool>.self, from: data)
         }
     }
 
@@ -165,7 +165,7 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<EmptyMethod>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<EmptyMethod>.self, from: data)
 
         #expect(decoded.id == 1)
         #expect(decoded.method == EmptyMethod.name)
@@ -179,7 +179,7 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<EmptyMethod>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<EmptyMethod>.self, from: data)
 
         #expect(decoded.id == 1)
         #expect(decoded.method == EmptyMethod.name)
@@ -194,7 +194,7 @@ struct RequestTests {
         let decoder = JSONDecoder()
         #expect(throws: DecodingError.self) {
             _ = try decoder.decode(
-                Request<Initialize>.self, from: missingParams.data(using: .utf8)!)
+                MCPRequest<MCPInitialize>.self, from: missingParams.data(using: .utf8)!)
         }
 
         // Test null params
@@ -202,7 +202,7 @@ struct RequestTests {
             {"jsonrpc":"2.0","id":"test-id","method":"initialize","params":null}
             """
         #expect(throws: DecodingError.self) {
-            _ = try decoder.decode(Request<Initialize>.self, from: nullParams.data(using: .utf8)!)
+            _ = try decoder.decode(MCPRequest<MCPInitialize>.self, from: nullParams.data(using: .utf8)!)
         }
 
         // Verify that empty object params works (since fields have defaults)
@@ -210,7 +210,7 @@ struct RequestTests {
             {"jsonrpc":"2.0","id":"test-id","method":"initialize","params":{}}
             """
         let decoded = try decoder.decode(
-            Request<Initialize>.self, from: emptyParams.data(using: .utf8)!)
+            MCPRequest<MCPInitialize>.self, from: emptyParams.data(using: .utf8)!)
         #expect(decoded.params.protocolVersion == MCPVersion.latest)
         #expect(decoded.params.clientInfo.name == "unknown")
     }
@@ -224,7 +224,7 @@ struct RequestTests {
 
         let decoder = JSONDecoder()
         #expect(throws: DecodingError.self) {
-            _ = try decoder.decode(Request<CallTool>.self, from: data)
+            _ = try decoder.decode(MCPRequest<CallTool>.self, from: data)
         }
     }
 
@@ -236,7 +236,7 @@ struct RequestTests {
             """
         let decoder = JSONDecoder()
         let decodedMissing = try decoder.decode(
-            Request<ListTools>.self,
+            MCPRequest<ListTools>.self,
             from: missingParams.data(using: .utf8)!)
         #expect(decodedMissing.id == 1)
         #expect(decodedMissing.method == ListTools.name)
@@ -247,7 +247,7 @@ struct RequestTests {
             {"jsonrpc":"2.0","id":1,"method":"tools/list","params":null}
             """
         let decodedNull = try decoder.decode(
-            Request<ListTools>.self,
+            MCPRequest<ListTools>.self,
             from: nullParams.data(using: .utf8)!)
         #expect(decodedNull.params.cursor == nil)
 
@@ -256,7 +256,7 @@ struct RequestTests {
             {"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}
             """
         let decodedEmpty = try decoder.decode(
-            Request<ListTools>.self,
+            MCPRequest<ListTools>.self,
             from: emptyParams.data(using: .utf8)!)
         #expect(decodedEmpty.params.cursor == nil)
 
@@ -265,12 +265,12 @@ struct RequestTests {
             {"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"cursor":"next-page"}}
             """
         let decodedWithCursor = try decoder.decode(
-            Request<ListTools>.self,
+            MCPRequest<ListTools>.self,
             from: withCursor.data(using: .utf8)!)
         #expect(decodedWithCursor.params.cursor == "next-page")
     }
 
-    @Test("AnyRequest parameters request decoding - without params")
+    @Test("AnyMCPRequest parameters request decoding - without params")
     func testAnyRequestParametersRequestDecodingWithoutParams() throws {
         // Test decoding when params field is missing
         let jsonString = """
@@ -279,13 +279,13 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(AnyRequest.self, from: data)
+        let decoded = try decoder.decode(AnyMCPRequest.self, from: data)
 
         #expect(decoded.id == 1)
         #expect(decoded.method == MCPPing.name)
     }
 
-    @Test("AnyRequest parameters request decoding - with null params")
+    @Test("AnyMCPRequest parameters request decoding - with null params")
     func testAnyRequestParametersRequestDecodingWithNullParams() throws {
         // Test decoding when params field is null
         let jsonString = """
@@ -294,13 +294,13 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<MCPPing>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<MCPPing>.self, from: data)
 
         #expect(decoded.id == 1)
         #expect(decoded.method == MCPPing.name)
     }
 
-    @Test("AnyRequest parameters request decoding - with empty params")
+    @Test("AnyMCPRequest parameters request decoding - with empty params")
     func testAnyRequestParametersRequestDecodingWithEmptyParams() throws {
         // Test decoding when params field is null
         let jsonString = """
@@ -309,7 +309,7 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<MCPPing>.self, from: data)
+        let decoded = try decoder.decode(MCPRequest<MCPPing>.self, from: data)
 
         #expect(decoded.id == 1)
         #expect(decoded.method == MCPPing.name)

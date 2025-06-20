@@ -105,7 +105,7 @@ public struct Resource: Hashable, Codable, Sendable {
 
 /// To discover available resources, clients send a `resources/list` request.
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/resources/#listing-resources
-public enum ListResources: Method {
+public enum ListResources: MCPMethod {
     public static let name: String = "resources/list"
 
     public struct Parameters: NotRequired, Hashable, Codable, Sendable {
@@ -133,7 +133,7 @@ public enum ListResources: Method {
 
 /// To retrieve resource contents, clients send a `resources/read` request:
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/resources/#reading-resources
-public enum ReadResource: Method {
+public enum ReadResource: MCPMethod {
     public static let name: String = "resources/read"
 
     public struct Parameters: Hashable, Codable, Sendable {
@@ -155,7 +155,7 @@ public enum ReadResource: Method {
 
 /// To discover available resource templates, clients send a `resources/templates/list` request.
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/resources/#resource-templates
-public enum ListResourceTemplates: Method {
+public enum ListResourceTemplates: MCPMethod {
     public static let name: String = "resources/templates/list"
 
     public struct Parameters: NotRequired, Hashable, Codable, Sendable {
@@ -196,7 +196,7 @@ public struct ResourceListChangedNotification: Notification {
 
 /// Clients can subscribe to specific resources and receive notifications when they change.
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/server/resources/#subscriptions
-public enum ResourceSubscribe: Method {
+public enum ResourceSubscribe: MCPMethod {
     public static let name: String = "resources/subscribe"
 
     public struct Parameters: Hashable, Codable, Sendable {

@@ -27,8 +27,8 @@ struct ClientTests {
             try await Task.sleep(for: .milliseconds(10))
             if let lastMessage = await transport.sentMessages.last,
                 let data = lastMessage.data(using: .utf8),
-                let request = try? JSONDecoder().decode(Request<Initialize>.self, from: data) {
-                let response = Initialize.response(
+                let request = try? JSONDecoder().decode(MCPRequest<MCPInitialize>.self, from: data) {
+                let response = MCPInitialize.response(
                     id: request.id,
                     result: .init(
                         protocolVersion: MCPVersion.latest,
@@ -62,9 +62,9 @@ struct ClientTests {
 
         if let lastMessage = await transport.sentMessages.last,
             let data = lastMessage.data(using: .utf8),
-            let request = try? JSONDecoder().decode(Request<Initialize>.self, from: data) {
+            let request = try? JSONDecoder().decode(MCPRequest<MCPInitialize>.self, from: data) {
             // Create a valid initialize response
-            let response = Initialize.response(
+            let response = MCPInitialize.response(
                 id: request.id,
                 result: .init(
                     protocolVersion: MCPVersion.latest,
@@ -135,8 +135,8 @@ struct ClientTests {
             try await Task.sleep(for: .milliseconds(10))
             if let lastMessage = await transport.sentMessages.last,
                 let data = lastMessage.data(using: .utf8),
-                let request = try? JSONDecoder().decode(Request<Initialize>.self, from: data) {
-                let response = Initialize.response(
+                let request = try? JSONDecoder().decode(MCPRequest<MCPInitialize>.self, from: data) {
+                let response = MCPInitialize.response(
                     id: request.id,
                     result: .init(
                         protocolVersion: MCPVersion.latest,
@@ -184,8 +184,8 @@ struct ClientTests {
             try await Task.sleep(for: .milliseconds(10))
             if let lastMessage = await transport.sentMessages.last,
                 let data = lastMessage.data(using: .utf8),
-                let request = try? JSONDecoder().decode(Request<Initialize>.self, from: data) {
-                let response = Initialize.response(
+                let request = try? JSONDecoder().decode(MCPRequest<MCPInitialize>.self, from: data) {
+                let response = MCPInitialize.response(
                     id: request.id,
                     result: .init(
                         protocolVersion: MCPVersion.latest,
@@ -239,8 +239,8 @@ struct ClientTests {
             try await Task.sleep(for: .milliseconds(10))
             if let lastMessage = await transport.sentMessages.last,
                 let data = lastMessage.data(using: .utf8),
-                let request = try? JSONDecoder().decode(Request<Initialize>.self, from: data) {
-                let response = Initialize.response(
+                let request = try? JSONDecoder().decode(MCPRequest<MCPInitialize>.self, from: data) {
+                let response = MCPInitialize.response(
                     id: request.id,
                     result: .init(
                         protocolVersion: MCPVersion.latest,
@@ -271,10 +271,10 @@ struct ClientTests {
                 if let lastMessage = await transport.sentMessages.last,
                     let data = lastMessage.data(using: .utf8),
                     let decodedRequest = try? JSONDecoder().decode(
-                        Request<ListPrompts>.self, from: data) {
+                        MCPRequest<ListPrompts>.self, from: data) {
 
                     // Create an error response with the same ID
-                    let errorResponse = Response<ListPrompts>(
+                    let errorResponse = MCPResponse<ListPrompts>(
                         id: decodedRequest.id,
                         error: MCPError.methodNotFound("Test: Prompts capability not available")
                     )
@@ -328,8 +328,8 @@ struct ClientTests {
             try await Task.sleep(for: .milliseconds(10))
             if let lastMessage = await transport.sentMessages.last,
                 let data = lastMessage.data(using: .utf8),
-                let request = try? JSONDecoder().decode(Request<Initialize>.self, from: data) {
-                let response = Initialize.response(
+                let request = try? JSONDecoder().decode(MCPRequest<MCPInitialize>.self, from: data) {
+                let response = MCPInitialize.response(
                     id: request.id,
                     result: .init(
                         protocolVersion: MCPVersion.latest,
@@ -367,7 +367,7 @@ struct ClientTests {
 
         // Verify the sent batch contains the two requests
         let decoder = JSONDecoder()
-        let sentRequests = try decoder.decode([AnyRequest].self, from: batchData)
+        let sentRequests = try decoder.decode([AnyMCPRequest].self, from: batchData)
         #expect(sentRequests.count == 2)
         #expect(sentRequests.first?.id == request1.id)
         #expect(sentRequests.first?.method == MCPPing.name)
@@ -375,10 +375,10 @@ struct ClientTests {
         #expect(sentRequests.last?.method == MCPPing.name)
 
         // Prepare batch response
-        let response1 = Response<MCPPing>(id: request1.id, result: .init())
-        let response2 = Response<MCPPing>(id: request2.id, result: .init())
-        let anyResponse1 = try AnyResponse(response1)
-        let anyResponse2 = try AnyResponse(response2)
+        let response1 = MCPResponse<MCPPing>(id: request1.id, result: .init())
+        let response2 = MCPResponse<MCPPing>(id: request2.id, result: .init())
+        let anyResponse1 = try AnyMCPResponse(response1)
+        let anyResponse2 = try AnyMCPResponse(response2)
 
         // Queue the batch response
         try await transport.queue(batch: [anyResponse1, anyResponse2])
@@ -407,8 +407,8 @@ struct ClientTests {
             try await Task.sleep(for: .milliseconds(10))
             if let lastMessage = await transport.sentMessages.last,
                 let data = lastMessage.data(using: .utf8),
-                let request = try? JSONDecoder().decode(Request<Initialize>.self, from: data) {
-                let response = Initialize.response(
+                let request = try? JSONDecoder().decode(MCPRequest<MCPInitialize>.self, from: data) {
+                let response = MCPInitialize.response(
                     id: request.id,
                     result: .init(
                         protocolVersion: MCPVersion.latest,
@@ -439,11 +439,11 @@ struct ClientTests {
         #expect(await transport.sentMessages.count == 3)  // Initialize request + Initialized notification + Batch
 
         // Prepare batch response (success for 1, error for 2)
-        let response1 = Response<MCPPing>(id: request1.id, result: .init())
+        let response1 = MCPResponse<MCPPing>(id: request1.id, result: .init())
         let error = MCPError.internalError("Simulated batch error")
-        let response2 = Response<MCPPing>(id: request2.id, error: error)
-        let anyResponse1 = try AnyResponse(response1)
-        let anyResponse2 = try AnyResponse(response2)
+        let response2 = MCPResponse<MCPPing>(id: request2.id, error: error)
+        let anyResponse1 = try AnyMCPResponse(response1)
+        let anyResponse2 = try AnyMCPResponse(response2)
 
         // Queue the batch response
         try await transport.queue(batch: [anyResponse1, anyResponse2])
@@ -486,8 +486,8 @@ struct ClientTests {
             try await Task.sleep(for: .milliseconds(10))
             if let lastMessage = await transport.sentMessages.last,
                 let data = lastMessage.data(using: .utf8),
-                let request = try? JSONDecoder().decode(Request<Initialize>.self, from: data) {
-                let response = Initialize.response(
+                let request = try? JSONDecoder().decode(MCPRequest<MCPInitialize>.self, from: data) {
+                let response = MCPInitialize.response(
                     id: request.id,
                     result: .init(
                         protocolVersion: MCPVersion.latest,
@@ -525,8 +525,8 @@ struct ClientTests {
             try await Task.sleep(for: .milliseconds(10))
             if let lastMessage = await transport.sentMessages.last,
                 let data = lastMessage.data(using: .utf8),
-                let request = try? JSONDecoder().decode(Request<Initialize>.self, from: data) {
-                let response = Initialize.response(
+                let request = try? JSONDecoder().decode(MCPRequest<MCPInitialize>.self, from: data) {
+                let response = MCPInitialize.response(
                     id: request.id,
                     result: .init(
                         protocolVersion: MCPVersion.latest,
@@ -557,7 +557,7 @@ struct ClientTests {
             let decoder = JSONDecoder()
             do {
                 let decodedNotification = try decoder.decode(
-                    Message<InitializedNotification>.self, from: data)
+                    MCPMessage<InitializedNotification>.self, from: data)
                 #expect(decodedNotification.method == InitializedNotification.name)
             } catch {
                 #expect(Bool(false), "Failed to decode notification: \(error)")
@@ -581,10 +581,10 @@ struct ClientTests {
 
             if let lastMessage = await transport.sentMessages.last,
                 let data = lastMessage.data(using: .utf8),
-                let request = try? JSONDecoder().decode(Request<Initialize>.self, from: data) {
+                let request = try? JSONDecoder().decode(MCPRequest<MCPInitialize>.self, from: data) {
 
                 // Create a valid initialize response
-                let response = Initialize.response(
+                let response = MCPInitialize.response(
                     id: request.id,
                     result: .init(
                         protocolVersion: MCPVersion.latest,
@@ -611,7 +611,7 @@ struct ClientTests {
                         do {
                             let decoder = JSONDecoder()
                             let decodedNotification = try decoder.decode(
-                                Message<InitializedNotification>.self, from: notificationData)
+                                MCPMessage<InitializedNotification>.self, from: notificationData)
                             #expect(decodedNotification.method == InitializedNotification.name)
                         } catch {
                             #expect(Bool(false), "Failed to decode notification: \(error)")
@@ -657,8 +657,8 @@ struct ClientTests {
             try await Task.sleep(for: .milliseconds(10))
             if let lastMessage = await transport.sentMessages.last,
                 let data = lastMessage.data(using: .utf8),
-                let request = try? JSONDecoder().decode(Request<Initialize>.self, from: data) {
-                let response = Initialize.response(
+                let request = try? JSONDecoder().decode(MCPRequest<MCPInitialize>.self, from: data) {
+                let response = MCPInitialize.response(
                     id: request.id,
                     result: .init(
                         protocolVersion: MCPVersion.latest,
@@ -682,8 +682,8 @@ struct ClientTests {
         let request = MCPPing.request()
 
         // Create a response for the request and queue it immediately
-        let response = Response<MCPPing>(id: request.id, result: .init())
-        let anyResponse = try AnyResponse(response)
+        let response = MCPResponse<MCPPing>(id: request.id, result: .init())
+        let anyResponse = try AnyMCPResponse(response)
         try await transport.queue(response: anyResponse)
 
         // Now attempt to send the request - this should fail due to send error
@@ -717,8 +717,8 @@ struct ClientTests {
             try await Task.sleep(for: .milliseconds(10))
             if let lastMessage = await transport.sentMessages.last,
                 let data = lastMessage.data(using: .utf8),
-                let request = try? JSONDecoder().decode(Request<Initialize>.self, from: data) {
-                let response = Initialize.response(
+                let request = try? JSONDecoder().decode(MCPRequest<MCPInitialize>.self, from: data) {
+                let response = MCPInitialize.response(
                     id: request.id,
                     result: .init(
                         protocolVersion: MCPVersion.latest,
@@ -739,8 +739,8 @@ struct ClientTests {
         let request = MCPPing.request()
 
         // Create a response for the request and queue it immediately
-        let response = Response<MCPPing>(id: request.id, result: .init())
-        let anyResponse = try AnyResponse(response)
+        let response = MCPResponse<MCPPing>(id: request.id, result: .init())
+        let anyResponse = try AnyMCPResponse(response)
         try await transport.queue(response: anyResponse)
 
         // Set up the transport to fail sends

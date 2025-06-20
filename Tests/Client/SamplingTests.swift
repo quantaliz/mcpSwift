@@ -23,7 +23,7 @@ import class Foundation.JSONEncoder
 
 @Suite("Sampling Tests")
 struct SamplingTests {
-    @Test("Sampling.Message encoding and decoding")
+    @Test("Sampling.MCPMessage encoding and decoding")
     func testSamplingMessageCoding() throws {
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()
@@ -339,7 +339,7 @@ struct SamplingTests {
         #expect(decoded.intelligencePriority?.doubleValue == 0.0)
     }
 
-    @Test("Message factory methods")
+    @Test("MCPMessage factory methods")
     func testMessageFactoryMethods() throws {
         // Test user message factory method
         let userMessage: Sampling.Message = .user("Hello, world!")
@@ -441,7 +441,7 @@ struct SamplingTests {
         }
     }
 
-    @Test("Message factory methods with string interpolation")
+    @Test("MCPMessage factory methods with string interpolation")
     func testMessageFactoryMethodsWithStringInterpolation() throws {
         let customerName = "Bob"
         let orderNumber = "ORD-12345"

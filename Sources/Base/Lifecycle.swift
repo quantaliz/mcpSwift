@@ -14,7 +14,7 @@
 /// - Share implementation details
 ///
 /// - SeeAlso: https://spec.modelcontextprotocol.io/specification/2024-11-05/basic/lifecycle/#initialization
-public enum Initialize: Method {
+public enum MCPInitialize: MCPMethod {
     public static let name: String = "initialize"
 
     public struct Parameters: Hashable, Codable, Sendable {

@@ -32,7 +32,7 @@ struct ServerTests {
 
         // Queue an initialize request
         try await transport.queue(
-            request: Initialize.request(
+            request: MCPInitialize.request(
                 .init(
                     protocolVersion: MCPVersion.latest,
                     capabilities: .init(),
@@ -87,7 +87,7 @@ struct ServerTests {
 
         // Queue an initialize request
         try await transport.queue(
-            request: Initialize.request(
+            request: MCPInitialize.request(
                 .init(
                     protocolVersion: MCPVersion.latest,
                     capabilities: .init(),
@@ -127,7 +127,7 @@ struct ServerTests {
 
         // Queue an initialize request from blocked client
         try await transport.queue(
-            request: Initialize.request(
+            request: MCPInitialize.request(
                 .init(
                     protocolVersion: MCPVersion.latest,
                     capabilities: .init(),
@@ -160,7 +160,7 @@ struct ServerTests {
 
         // Initialize the server first
         try await transport.queue(
-            request: Initialize.request(
+            request: MCPInitialize.request(
                 .init(
                     protocolVersion: MCPVersion.latest,
                     capabilities: .init(),
@@ -182,7 +182,7 @@ struct ServerTests {
                 {"jsonrpc":"2.0","id":2,"method":"ping","params":{}}
             ]
             """
-        let batch = try JSONDecoder().decode([AnyRequest].self, from: batchJSON.data(using: .utf8)!)
+        let batch = try JSONDecoder().decode([AnyMCPRequest].self, from: batchJSON.data(using: .utf8)!)
 
         // Send the batch request
         try await transport.queue(batch: batch)
