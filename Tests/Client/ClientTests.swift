@@ -50,7 +50,7 @@ struct ClientTests {
     }
 
     @Test(
-        "Ping request",
+        "MCPPing request",
         .timeLimit(.minutes(1))
     )
     func testClientPing() async throws {
@@ -93,8 +93,8 @@ struct ClientTests {
             // Give it a moment to send the request
             try await Task.sleep(for: .milliseconds(10))
 
-            #expect(await transport.sentMessages.count == 2)  // Initialize + Ping
-            #expect(await transport.sentMessages.last?.contains(Ping.name) == true)
+            #expect(await transport.sentMessages.count == 2)  // Initialize + MCPPing
+            #expect(await transport.sentMessages.last?.contains(MCPPing.name) == true)
 
             // Cancel the ping task
             pingTask.cancel()
@@ -346,10 +346,10 @@ struct ClientTests {
         try await Task.sleep(for: .milliseconds(10))  // Allow connection tasks
         initTask.cancel()
 
-        let request1 = Ping.request()
-        let request2 = Ping.request()
-        var resultTask1: Task<Ping.Result, Swift.Error>?
-        var resultTask2: Task<Ping.Result, Swift.Error>?
+        let request1 = MCPPing.request()
+        let request2 = MCPPing.request()
+        var resultTask1: Task<MCPPing.Result, Swift.Error>?
+        var resultTask2: Task<MCPPing.Result, Swift.Error>?
 
         try await client.withBatch { batch in
             resultTask1 = try await batch.addRequest(request1)
@@ -370,13 +370,13 @@ struct ClientTests {
         let sentRequests = try decoder.decode([AnyRequest].self, from: batchData)
         #expect(sentRequests.count == 2)
         #expect(sentRequests.first?.id == request1.id)
-        #expect(sentRequests.first?.method == Ping.name)
+        #expect(sentRequests.first?.method == MCPPing.name)
         #expect(sentRequests.last?.id == request2.id)
-        #expect(sentRequests.last?.method == Ping.name)
+        #expect(sentRequests.last?.method == MCPPing.name)
 
         // Prepare batch response
-        let response1 = Response<Ping>(id: request1.id, result: .init())
-        let response2 = Response<Ping>(id: request2.id, result: .init())
+        let response1 = Response<MCPPing>(id: request1.id, result: .init())
+        let response2 = Response<MCPPing>(id: request2.id, result: .init())
         let anyResponse1 = try AnyResponse(response1)
         let anyResponse2 = try AnyResponse(response2)
 
@@ -425,10 +425,10 @@ struct ClientTests {
         try await Task.sleep(for: .milliseconds(10))
         initTask.cancel()
 
-        let request1 = Ping.request()  // Success
-        let request2 = Ping.request()  // Error
+        let request1 = MCPPing.request()  // Success
+        let request2 = MCPPing.request()  // Error
 
-        var resultTasks: [Task<Ping.Result, Swift.Error>] = []
+        var resultTasks: [Task<MCPPing.Result, Swift.Error>] = []
 
         try await client.withBatch { batch in
             resultTasks.append(try await batch.addRequest(request1))
@@ -439,9 +439,9 @@ struct ClientTests {
         #expect(await transport.sentMessages.count == 3)  // Initialize request + Initialized notification + Batch
 
         // Prepare batch response (success for 1, error for 2)
-        let response1 = Response<Ping>(id: request1.id, result: .init())
+        let response1 = Response<MCPPing>(id: request1.id, result: .init())
         let error = MCPError.internalError("Simulated batch error")
-        let response2 = Response<Ping>(id: request2.id, error: error)
+        let response2 = Response<MCPPing>(id: request2.id, error: error)
         let anyResponse1 = try AnyResponse(response1)
         let anyResponse2 = try AnyResponse(response2)
 
@@ -679,10 +679,10 @@ struct ClientTests {
         await transport.setFailSend(true)
 
         // Create a ping request to get the ID
-        let request = Ping.request()
+        let request = MCPPing.request()
 
         // Create a response for the request and queue it immediately
-        let response = Response<Ping>(id: request.id, result: .init())
+        let response = Response<MCPPing>(id: request.id, result: .init())
         let anyResponse = try AnyResponse(response)
         try await transport.queue(response: anyResponse)
 
@@ -736,10 +736,10 @@ struct ClientTests {
         initTask.cancel()
 
         // Create a ping request to get the ID
-        let request = Ping.request()
+        let request = MCPPing.request()
 
         // Create a response for the request and queue it immediately
-        let response = Response<Ping>(id: request.id, result: .init())
+        let response = Response<MCPPing>(id: request.id, result: .init())
         let anyResponse = try AnyResponse(response)
         try await transport.queue(response: anyResponse)
 

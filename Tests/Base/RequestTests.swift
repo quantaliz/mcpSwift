@@ -95,10 +95,10 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<Ping>.self, from: data)
+        let decoded = try decoder.decode(Request<MCPPing>.self, from: data)
 
         #expect(decoded.id == 1)
-        #expect(decoded.method == Ping.name)
+        #expect(decoded.method == MCPPing.name)
     }
 
     @Test("NotRequired parameters request decoding - without params")
@@ -110,10 +110,10 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<Ping>.self, from: data)
+        let decoded = try decoder.decode(Request<MCPPing>.self, from: data)
 
         #expect(decoded.id == 1)
-        #expect(decoded.method == Ping.name)
+        #expect(decoded.method == MCPPing.name)
     }
 
     @Test("NotRequired parameters request decoding - with null params")
@@ -125,10 +125,10 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<Ping>.self, from: data)
+        let decoded = try decoder.decode(Request<MCPPing>.self, from: data)
 
         #expect(decoded.id == 1)
-        #expect(decoded.method == Ping.name)
+        #expect(decoded.method == MCPPing.name)
     }
 
     @Test("Required parameters request decoding - missing params")
@@ -282,7 +282,7 @@ struct RequestTests {
         let decoded = try decoder.decode(AnyRequest.self, from: data)
 
         #expect(decoded.id == 1)
-        #expect(decoded.method == Ping.name)
+        #expect(decoded.method == MCPPing.name)
     }
 
     @Test("AnyRequest parameters request decoding - with null params")
@@ -294,10 +294,10 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<Ping>.self, from: data)
+        let decoded = try decoder.decode(Request<MCPPing>.self, from: data)
 
         #expect(decoded.id == 1)
-        #expect(decoded.method == Ping.name)
+        #expect(decoded.method == MCPPing.name)
     }
 
     @Test("AnyRequest parameters request decoding - with empty params")
@@ -309,9 +309,9 @@ struct RequestTests {
         let data = jsonString.data(using: .utf8)!
 
         let decoder = JSONDecoder()
-        let decoded = try decoder.decode(Request<Ping>.self, from: data)
+        let decoded = try decoder.decode(Request<MCPPing>.self, from: data)
 
         #expect(decoded.id == 1)
-        #expect(decoded.method == Ping.name)
+        #expect(decoded.method == MCPPing.name)
     }
 }

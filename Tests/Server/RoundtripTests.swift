@@ -134,7 +134,7 @@ struct RoundtripTests {
         // Test ping
         let pingTask = Task {
             try await client.ping()
-            // Ping doesn't return anything, so just getting here without throwing is success
+            // MCPPing doesn't return anything, so just getting here without throwing is success
             #expect(Bool(true))
         }
 

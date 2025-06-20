@@ -462,16 +462,16 @@ public actor Server {
                 "id": "\(request.id)",
             ])
 
-        if configuration.strict {
-            // The client SHOULD NOT send requests other than pings
-            // before the server has responded to the initialize request.
-            switch request.method {
-            case Initialize.name, Ping.name:
-                break
-            default:
-                try checkInitialized()
-            }
-        }
+//        if configuration.strict {
+//            // The client SHOULD NOT send requests other than pings
+//            // before the server has responded to the initialize request.
+//            switch request.method {
+//            case Initialize.name, MCPPing.name:
+//                break
+//            default:
+//                try checkInitialized()
+//            }
+//        }
 
         // Find handler for method name
         guard let handler = methodHandlers[request.method] else {
@@ -583,8 +583,8 @@ public actor Server {
             )
         }
 
-        // Ping
-        withMethodHandler(Ping.self) { _ in return Empty() }
+        // MCPPing
+        withMethodHandler(MCPPing.self) { _ in return Empty() }
     }
 
     private func setInitialState(

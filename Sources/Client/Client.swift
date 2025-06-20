@@ -446,7 +446,7 @@ public actor Client {
     /// do {
     ///     if let pingTask = pingTask {
     ///         try await pingTask.value // Await ping result (throws if ping failed)
-    ///         print("Ping successful")
+    ///         print("MCPPing successful")
     ///     }
     ///     if let promptTask = promptTask {
     ///         let promptResult = try await promptTask.value // Await prompt result
@@ -523,20 +523,20 @@ public actor Client {
         self.serverVersion = result.protocolVersion
         self.instructions = result.instructions
 
-        // If the transport is an HTTPClientTransport and it's configured for streaming,
-        // tell it to start the SSE listener now that initialization is complete.
-        if let httpClientTransport = self.connection as? HTTPClientTransport,
-            httpClientTransport.streaming
-        {
-            // Start in a detached task to avoid delaying initialization
-            Task {
-                do {
-                    try await httpClientTransport.startStreaming()
-                } catch {
-                    await logger?.error("SSE streaming start failed: \(error)")
-                }
-            }
-        }
+//        // If the transport is an HTTPClientTransport and it's configured for streaming,
+//        // tell it to start the SSE listener now that initialization is complete.
+//        if let httpClientTransport = self.connection as? HTTPClientTransport,
+//            httpClientTransport.streaming
+//        {
+//            // Start in a detached task to avoid delaying initialization
+//            Task {
+//                do {
+//                    try await httpClientTransport.startStreaming()
+//                } catch {
+//                    await logger?.error("SSE streaming start failed: \(error)")
+//                }
+//            }
+//        }
 
         try await notify(InitializedNotification.message())
 
@@ -544,7 +544,7 @@ public actor Client {
     }
 
     public func ping() async throws {
-        let request = Ping.request()
+        let request = MCPPing.request()
         _ = try await send(request)
     }
 
