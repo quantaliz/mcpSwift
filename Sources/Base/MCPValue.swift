@@ -1,5 +1,5 @@
 //
-//  Value.swift
+//  MCPValue.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -12,7 +12,7 @@ import class Foundation.JSONDecoder
 import class Foundation.JSONEncoder
 
 /// A codable value.
-public enum Value: Hashable, Sendable {
+public enum MCPValue: Hashable, Sendable {
     case null
     case bool(Bool)
     case int(Int)
@@ -20,17 +20,17 @@ public enum Value: Hashable, Sendable {
     case string(String)
     case data(mimeType: String? = nil, Data)
     case array([Value])
-    case object([String: Value])
+    case object([String: MCPValue])
 
     /// Create a `Value` from a `Codable` value.
     /// - Parameter value: The codable value
     /// - Returns: A value
     public init<T: Codable>(_ value: T) throws {
-        if let valueAsValue = value as? Value {
+        if let valueAsValue = value as? MCPValue {
             self = valueAsValue
         } else {
             let data = try JSONEncoder().encode(value)
-            self = try JSONDecoder().decode(Value.self, from: data)
+            self = try JSONDecoder().decode(MCPValue.self, from: data)
         }
     }
 
@@ -81,9 +81,9 @@ public enum Value: Hashable, Sendable {
         return value
     }
 
-    /// Returns the `[String: Value]` value if the value is an `object`,
+    /// Returns the `[String: MCPValue]` value if the value is an `object`,
     /// otherwise returns `nil`.
-    public var objectValue: [String: Value]? {
+    public var objectValue: [String: MCPValue]? {
         guard case let .object(value) = self else { return nil }
         return value
     }
@@ -91,7 +91,7 @@ public enum Value: Hashable, Sendable {
 
 // MARK: - Codable
 
-extension Value: Codable {
+extension MCPValue: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
 
@@ -105,14 +105,15 @@ extension Value: Codable {
             self = .double(value)
         } else if let value = try? container.decode(String.self) {
             if Data.isDataURL(string: value),
-                case let (mimeType, data)? = Data.parseDataURL(value) {
+                case let (mimeType, data)? = Data.parseDataURL(value)
+            {
                 self = .data(mimeType: mimeType, data)
             } else {
                 self = .string(value)
             }
         } else if let value = try? container.decode([Value].self) {
             self = .array(value)
-        } else if let value = try? container.decode([String: Value].self) {
+        } else if let value = try? container.decode([String: MCPValue].self) {
             self = .object(value)
         } else {
             throw DecodingError.dataCorruptedError(
@@ -144,7 +145,7 @@ extension Value: Codable {
     }
 }
 
-extension Value: CustomStringConvertible {
+extension MCPValue: CustomStringConvertible {
     public var description: String {
         switch self {
         case .null:
@@ -169,7 +170,7 @@ extension Value: CustomStringConvertible {
 
 // MARK: - ExpressibleByNilLiteral
 
-extension Value: ExpressibleByNilLiteral {
+extension MCPValue: ExpressibleByNilLiteral {
     public init(nilLiteral: ()) {
         self = .null
     }
@@ -177,7 +178,7 @@ extension Value: ExpressibleByNilLiteral {
 
 // MARK: - ExpressibleByBooleanLiteral
 
-extension Value: ExpressibleByBooleanLiteral {
+extension MCPValue: ExpressibleByBooleanLiteral {
     public init(booleanLiteral value: Bool) {
         self = .bool(value)
     }
@@ -185,7 +186,7 @@ extension Value: ExpressibleByBooleanLiteral {
 
 // MARK: - ExpressibleByIntegerLiteral
 
-extension Value: ExpressibleByIntegerLiteral {
+extension MCPValue: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int) {
         self = .int(value)
     }
@@ -193,7 +194,7 @@ extension Value: ExpressibleByIntegerLiteral {
 
 // MARK: - ExpressibleByFloatLiteral
 
-extension Value: ExpressibleByFloatLiteral {
+extension MCPValue: ExpressibleByFloatLiteral {
     public init(floatLiteral value: Double) {
         self = .double(value)
     }
@@ -201,7 +202,7 @@ extension Value: ExpressibleByFloatLiteral {
 
 // MARK: - ExpressibleByStringLiteral
 
-extension Value: ExpressibleByStringLiteral {
+extension MCPValue: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
         self = .string(value)
     }
@@ -209,17 +210,17 @@ extension Value: ExpressibleByStringLiteral {
 
 // MARK: - ExpressibleByArrayLiteral
 
-extension Value: ExpressibleByArrayLiteral {
-    public init(arrayLiteral elements: Value...) {
+extension MCPValue: ExpressibleByArrayLiteral {
+    public init(arrayLiteral elements: MCPValue...) {
         self = .array(elements)
     }
 }
 
 // MARK: - ExpressibleByDictionaryLiteral
 
-extension Value: ExpressibleByDictionaryLiteral {
-    public init(dictionaryLiteral elements: (String, Value)...) {
-        var dictionary: [String: Value] = [:]
+extension MCPValue: ExpressibleByDictionaryLiteral {
+    public init(dictionaryLiteral elements: (String, MCPValue)...) {
+        var dictionary: [String: MCPValue] = [:]
         for (key, value) in elements {
             dictionary[key] = value
         }
@@ -229,7 +230,7 @@ extension Value: ExpressibleByDictionaryLiteral {
 
 // MARK: - ExpressibleByStringInterpolation
 
-extension Value: ExpressibleByStringInterpolation {
+extension MCPValue: ExpressibleByStringInterpolation {
     public struct StringInterpolation: StringInterpolationProtocol {
         var stringValue: String
 
@@ -275,7 +276,7 @@ extension Bool {
     ///   Bool(Value.int(1), strict: false) // Returns true
     ///   Bool(Value.string("yes"), strict: false) // Returns true
     ///   ```
-    public init?(_ value: Value, strict: Bool = true) {
+    public init?(_ value: MCPValue, strict: Bool = true) {
         switch value {
         case .bool(let b):
             self = b
@@ -325,7 +326,7 @@ extension Int {
     ///   Int(Value.string("42"), strict: false) // Returns 42
     ///   Int(Value.double(42.5), strict: false) // Returns nil
     ///   ```
-    public init?(_ value: Value, strict: Bool = true) {
+    public init?(_ value: MCPValue, strict: Bool = true) {
         switch value {
         case .int(let i):
             self = i
@@ -359,7 +360,7 @@ extension Double {
     ///   Double(Value.int(42)) // Returns 42.0
     ///   Double(Value.string("42.5"), strict: false) // Returns 42.5
     ///   ```
-    public init?(_ value: Value, strict: Bool = true) {
+    public init?(_ value: MCPValue, strict: Bool = true) {
         switch value {
         case .double(let d):
             self = d
@@ -393,7 +394,7 @@ extension String {
     ///   String(Value.int(42), strict: false) // Returns "42"
     ///   String(Value.bool(true), strict: false) // Returns "true"
     ///   ```
-    public init?(_ value: Value, strict: Bool = true) {
+    public init?(_ value: MCPValue, strict: Bool = true) {
         switch value {
         case .string(let s):
             self = s

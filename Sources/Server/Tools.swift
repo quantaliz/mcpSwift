@@ -23,7 +23,7 @@ public struct Tool: Hashable, Codable, Sendable {
     /// The tool description
     public let description: String
     /// The tool input schema
-    public let inputSchema: Value?
+    public let inputSchema: MCPValue?
 
     /// Annotations that provide display-facing and operational information for a Tool.
     ///
@@ -95,7 +95,7 @@ public struct Tool: Hashable, Codable, Sendable {
     public init(
         name: String,
         description: String,
-        inputSchema: Value? = nil,
+        inputSchema: MCPValue? = nil,
         annotations: Annotations = nil
     ) {
         self.name = name
@@ -192,7 +192,7 @@ public struct Tool: Hashable, Codable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
         description = try container.decode(String.self, forKey: .description)
-        inputSchema = try container.decodeIfPresent(Value.self, forKey: .inputSchema)
+        inputSchema = try container.decodeIfPresent(MCPValue.self, forKey: .inputSchema)
         annotations =
             try container.decodeIfPresent(Tool.Annotations.self, forKey: .annotations) ?? .init()
     }
@@ -247,9 +247,9 @@ public enum CallTool: Method {
 
     public struct Parameters: Hashable, Codable, Sendable {
         public let name: String
-        public let arguments: [String: Value]?
+        public let arguments: [String: MCPValue]?
 
-        public init(name: String, arguments: [String: Value]? = nil) {
+        public init(name: String, arguments: [String: MCPValue]? = nil) {
             self.name = name
             self.arguments = arguments
         }

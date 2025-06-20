@@ -243,9 +243,9 @@ public enum GetPrompt: Method {
 
     public struct Parameters: Hashable, Codable, Sendable {
         public let name: String
-        public let arguments: [String: Value]?
+        public let arguments: [String: MCPValue]?
 
-        public init(name: String, arguments: [String: Value]? = nil) {
+        public init(name: String, arguments: [String: MCPValue]? = nil) {
             self.name = name
             self.arguments = arguments
         }

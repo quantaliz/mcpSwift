@@ -166,7 +166,7 @@ extension MCPError: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let code = try container.decode(Int.self, forKey: .code)
         let message = try container.decode(String.self, forKey: .message)
-        let data = try container.decodeIfPresent([String: Value].self, forKey: .data)
+        let data = try container.decodeIfPresent([String: MCPValue].self, forKey: .data)
 
         // Helper to extract detail from data, falling back to message if needed
         let unwrapDetail: (String?) -> String? = { fallback in

@@ -199,7 +199,7 @@ public enum CreateSamplingMessage: Method {
         /// Array of sequences that stop generation
         public let stopSequences: [String]?
         /// Additional provider-specific parameters
-        public let metadata: [String: Value]?
+        public let metadata: [String: MCPValue]?
 
         public init(
             messages: [Sampling.Message],
@@ -209,7 +209,7 @@ public enum CreateSamplingMessage: Method {
             temperature: Double? = nil,
             maxTokens: Int,
             stopSequences: [String]? = nil,
-            metadata: [String: Value]? = nil
+            metadata: [String: MCPValue]? = nil
         ) {
             self.messages = messages
             self.modelPreferences = modelPreferences

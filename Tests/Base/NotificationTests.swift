@@ -72,7 +72,7 @@ struct NotificationTests {
         let data = try encoder.encode(notification)
 
         // Verify the exact JSON structure
-        let json = try JSONDecoder().decode([String: Value].self, from: data)
+        let json = try JSONDecoder().decode([String: MCPValue].self, from: data)
         #expect(json["jsonrpc"] == "2.0")
         #expect(json["method"] == "notifications/initialized")
         #expect(json.count == 2, "Should only contain jsonrpc and method fields")
@@ -110,7 +110,7 @@ struct NotificationTests {
         let data = try encoder.encode(notification)
 
         // Verify the exact JSON structure
-        let json = try JSONDecoder().decode([String: Value].self, from: data)
+        let json = try JSONDecoder().decode([String: MCPValue].self, from: data)
         #expect(json["jsonrpc"] == "2.0")
         #expect(json["method"] == "notifications/resources/updated")
         #expect(json["params"] != nil)

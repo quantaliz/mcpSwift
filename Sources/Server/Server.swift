@@ -206,8 +206,9 @@ public actor Server {
                         } else {
                             // Try to extract request ID from raw JSON if possible
                             if let json = try? JSONDecoder().decode(
-                                [String: Value].self, from: data),
-                                let idValue = json["id"] {
+                                [String: MCPValue].self, from: data),
+                                let idValue = json["id"]
+                            {
                                 if let strValue = idValue.stringValue {
                                     requestID = .string(strValue)
                                 } else if let intValue = idValue.intValue {
@@ -341,7 +342,7 @@ public actor Server {
         temperature: Double? = nil,
         maxTokens: Int,
         stopSequences: [String]? = nil,
-        metadata: [String: Value]? = nil
+        metadata: [String: MCPValue]? = nil
     ) async throws -> CreateSamplingMessage.Result {
         guard connection != nil else {
             throw MCPError.internalError("Server connection not initialized")
@@ -443,7 +444,8 @@ public actor Server {
     ///   - sendResponse: Whether to send the response immediately (true) or return it (false)
     /// - Returns: The response when sendResponse is false
     private func handleRequest(_ request: Request<AnyMethod>, sendResponse: Bool = true)
-        async throws -> Response<AnyMethod>? {
+        async throws -> Response<AnyMethod>?
+    {
         // Check if this is a pre-processed error request (empty method)
         if request.method.isEmpty && !sendResponse {
             // This is a placeholder for an invalid request that couldn't be parsed in batch mode
@@ -457,7 +459,7 @@ public actor Server {
             "Processing request",
             metadata: [
                 "method": "\(request.method)",
-                "id": "\(request.id)"
+                "id": "\(request.id)",
             ])
 
         if configuration.strict {
@@ -531,7 +533,7 @@ public actor Server {
                     "Error handling notification",
                     metadata: [
                         "method": "\(message.method)",
-                        "error": "\(error)"
+                        "error": "\(error)",
                     ])
             }
         }
@@ -605,7 +607,7 @@ extension Server.Batch: Codable {
         let decoder = JSONDecoder()
 
         var items: [Item] = []
-        for item in try container.decode([Value].self) {
+        for item in try container.decode([MCPValue].self) {
             let data = try encoder.encode(item)
             try items.append(decoder.decode(Item.self, from: data))
         }

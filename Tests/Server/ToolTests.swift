@@ -346,7 +346,7 @@ struct ToolTests {
 
     @Test("CallTool parameters validation")
     func testCallToolParameters() throws {
-        let arguments: [String: Value] = [
+        let arguments: [String: MCPValue] = [
             "param1": .string("value1"),
             "param2": .int(42)
         ]

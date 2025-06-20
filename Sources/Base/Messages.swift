@@ -20,7 +20,7 @@ public struct Empty: NotRequired, Hashable, Codable, Sendable {
     public init() {}
 }
 
-extension Value: NotRequired {
+extension MCPValue: NotRequired {
     public init() {
         self = .null
     }
@@ -41,8 +41,8 @@ public protocol Method {
 /// Type-erased method for request/response handling
 struct AnyMethod: Method, Sendable {
     static var name: String { "" }
-    typealias Parameters = Value
-    typealias Result = Value
+    typealias Parameters = MCPValue
+    typealias Result = MCPValue
 }
 
 extension Method where Parameters == Empty {
@@ -59,7 +59,8 @@ extension Method where Result == Empty {
 
 extension Method {
     /// Create a request with the given parameters.
-    public static func request(id: MCPID = .random, _ parameters: Self.Parameters) -> Request<Self> {
+    public static func request(id: MCPID = .random, _ parameters: Self.Parameters) -> Request<Self>
+    {
         Request(id: id, method: name, params: parameters)
     }
 
@@ -124,7 +125,8 @@ extension Request {
             // If params exists and can be decoded, use it
             params = value
         } else if !container.contains(.params)
-            || (try? container.decodeNil(forKey: .params)) == true {
+            || (try? container.decodeNil(forKey: .params)) == true
+        {
             // If params is missing or explicitly null, use Empty for Empty parameters
             // or throw for non-Empty parameters
             if M.Parameters.self == Empty.self {
@@ -188,7 +190,7 @@ final class TypedRequestHandler<M: Method>: RequestHandlerBox, @unchecked Sendab
         switch response.result {
         case .success(let result):
             let resultData = try encoder.encode(result)
-            let resultValue = try decoder.decode(Value.self, from: resultData)
+            let resultValue = try decoder.decode(MCPValue.self, from: resultData)
             return Response(id: response.id, result: resultValue)
         case .failure(let error):
             return Response(id: response.id, error: error)
@@ -262,9 +264,9 @@ extension AnyResponse {
         self.id = response.id
         switch response.result {
         case .success(let result):
-            // For success, we still need to convert the result to a Value
+            // For success, we still need to convert the result to a MCPValue
             let data = try JSONEncoder().encode(result)
-            let resultValue = try JSONDecoder().decode(Value.self, from: data)
+            let resultValue = try JSONDecoder().decode(MCPValue.self, from: data)
             self.result = .success(resultValue)
         case .failure(let error):
             // Keep the original error without re-encoding/decoding
@@ -286,7 +288,7 @@ public protocol Notification: Hashable, Codable, Sendable {
 /// A type-erased notification for message handling
 struct AnyNotification: Notification, Sendable {
     static var name: String { "" }
-    typealias Parameters = Value
+    typealias Parameters = MCPValue
 }
 
 extension AnyNotification {
@@ -342,7 +344,8 @@ public struct Message<N: Notification>: Hashable, Codable, Sendable {
             // If params exists and can be decoded, use it
             params = value
         } else if !container.contains(.params)
-            || (try? container.decodeNil(forKey: .params)) == true {
+            || (try? container.decodeNil(forKey: .params)) == true
+        {
             // If params is missing or explicitly null, use Empty for Empty parameters
             // or throw for non-Empty parameters
             if N.Parameters.self == Empty.self {
@@ -386,7 +389,8 @@ class NotificationHandlerBox: @unchecked Sendable {
 
 /// A typed notification handler that can be used to handle notifications of a specific type
 final class TypedNotificationHandler<N: Notification>: NotificationHandlerBox,
-    @unchecked Sendable {
+    @unchecked Sendable
+{
     private let _handle: @Sendable (Message<N>) async throws -> Void
 
     init(_ handler: @escaping @Sendable (Message<N>) async throws -> Void) {

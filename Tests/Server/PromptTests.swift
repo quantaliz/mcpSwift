@@ -127,7 +127,7 @@ struct PromptTests {
 
     @Test("GetPrompt parameters validation")
     func testGetPromptParameters() throws {
-        let arguments: [String: Value] = [
+        let arguments: [String: MCPValue] = [
             "param1": .string("value1"),
             "param2": .int(42)
         ]
