@@ -1,5 +1,5 @@
 //
-//  Base64DataTests.swift
+//  Data+ExtensionsTests.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025

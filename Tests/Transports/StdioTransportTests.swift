@@ -9,7 +9,7 @@
 
 import Foundation
 import Testing
-
+import Logging
 @testable import MCPSwift
 
 #if canImport(System)
