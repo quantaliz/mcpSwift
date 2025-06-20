@@ -34,12 +34,10 @@ struct ClientExternalTests {
 
         // List prompts
         let (prompts, _) = try await client.listPrompts()
-        // Prompts can be empty, so no specific check on count, just that the call succeeded
         print("Found \(prompts.count) prompts.")
 
         // List resources
         let (resources, _) = try await client.listResources()
-        // Resources can be empty
         print("Found \(resources.count) resources.")
 
         // List tools
