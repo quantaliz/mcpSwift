@@ -550,11 +550,9 @@ public actor HTTPClientTransport: Transport {
             // According to MCP spec, servers MAY respond with 405 Method Not Allowed
             // if they don't support SSE streaming. In that case, we should continue
             // trying to connect periodically.
-            if httpResponse.statusCode == 405 {
-                logger.info("Server does not support SSE streaming - continuing with long-polling")
-                // Wait before retrying connection
-                try? await Task.sleep(for: .seconds(1))
-                return
+            if httpResponse.statusCode == HTTP_METHOD_NOT_ALLOWED {
+                logger.warning("Server does not support SSE GET - stopping event listener")
+                throw StreamableHTTPTransportError.methodNotAllowed
             }
             throw MCPError.internalError("HTTP error: \(httpResponse.statusCode)")
         }
@@ -602,27 +600,43 @@ public actor HTTPClientTransport: Transport {
     /// - Parameter stream: The URLSession.AsyncBytes stream to process
     /// - Throws: Error for stream processing failures
     private func processSSE(_ stream: URLSession.AsyncBytes) async throws {
-        for try await event in stream.events {
-            // Check if task has been cancelled
-            if Task.isCancelled { break }
-
-            logger.trace(
-                "SSE event received",
-                metadata: [
-                    "type": .string(event.event ?? "message"),
-                    "id": .string(event.id ?? "none")
-                ]
-            )
-            
-            // Handle event data
-            if !event.data.isEmpty {
-                // According to MCP spec, each event data field contains a single JSON-RPC message
-                if let data = event.data.data(using: .utf8) {
-                    messageContinuation.yield(data)
+        do {
+            var activeStream = true
+            for try await event in stream.events {
+                if !activeStream {
+                    break
+                }
+                
+                if Task.isCancelled {
+                    break
+                }
+                
+                logger.trace(
+                    "SSE event received",
+                    metadata: [
+                        "type": .string(event.event ?? "message"),
+                        "id": .string(event.id ?? "none")
+                    ]
+                )
+                
+                // Handle event data
+                if !event.data.isEmpty {
+                    // According to MCP spec, each event data field contains a single JSON-RPC message
+                    if let data = event.data.data(using: .utf8) {
+                        messageContinuation.yield(data)
+                    }
+                }
+                
+                // Check for server close events
+                if event.event == "end" || event.event == "close" {
+                    logger.debug("Server explicitly closed SSE stream")
+                    activeStream = false
                 }
             }
+        } catch {
+            throw error
         }
         
-        logger.debug("SSE stream ended - will reconnect", metadata: [:])
+        logger.debug("SSE stream ended - may reconnect", metadata: [:])
     }
 }
