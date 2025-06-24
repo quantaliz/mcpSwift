@@ -43,5 +43,6 @@ let package = Package(
         .testTarget(
             name: "MCPSwiftTests",
             dependencies: ["MCPSwift"] + targetDependencies)
-    ]
+    ],
+    swiftLanguageModes: [.v6],
 )
