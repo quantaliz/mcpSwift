@@ -58,7 +58,7 @@ public actor HTTPClientTransport: MCPTransport {
     /// Maximum time to wait for a session ID before proceeding with SSE connection
     public let sseInitializationTimeout: TimeInterval
 
-    internal var isConnected = false
+    private var isConnected = false
     private let messageStream: AsyncThrowingStream<Data, Swift.Error>
     private let messageContinuation: AsyncThrowingStream<Data, Swift.Error>.Continuation
 
@@ -80,32 +80,14 @@ public actor HTTPClientTransport: MCPTransport {
         sseInitializationTimeout: TimeInterval = 10,
         logger: Logger? = nil
     ) {
-        self.init(
-            endpoint: endpoint,
-            session: URLSession(configuration: configuration),
-            streaming: streaming,
-            sseInitializationTimeout: sseInitializationTimeout,
-            logger: logger
-        )
-    }
-
-    internal init(
-        endpoint: URL,
-        session: URLSession,
-        streaming: Bool = false,
-        sseInitializationTimeout: TimeInterval = 10,
-        logger: Logger? = nil
-    ) {
         self.endpoint = endpoint
-        self.session = session
+        self.session = URLSession(configuration: configuration)
         self.streaming = streaming
         self.sseInitializationTimeout = sseInitializationTimeout
 
         // Create message stream
-        var continuation: AsyncThrowingStream<Data, Swift.Error>.Continuation!
-        self.messageStream = AsyncThrowingStream { continuation = $0 }
-        self.messageContinuation = continuation
-
+        (messageStream, messageContinuation) = AsyncThrowingStream.makeStream(of: Data.self, throwing: Swift.Error.self)
+        
         self.logger =
             logger
             ?? Logger(
@@ -203,143 +185,72 @@ public actor HTTPClientTransport: MCPTransport {
             request.addValue(sessionID, forHTTPHeaderField: "Mcp-Session-Id")
         }
 
-        #if os(Linux)
-            // Linux implementation using data(for:) instead of bytes(for:)
-            let (responseData, response) = try await session.data(for: request)
-            try await processResponse(response: response, data: responseData)
-        #else
-            // macOS and other platforms with bytes(for:) support
-            let (responseStream, response) = try await session.bytes(for: request)
-            try await processResponse(response: response, stream: responseStream)
-        #endif
+        // macOS and other platforms with bytes(for:) support
+        let (responseStream, response) = try await session.bytes(for: request)
+        try await processResponse(response: response, stream: responseStream)
     }
     
     
-    /// Processes an HTTP response with data payload (Linux)
+    /// Process response with byte stream (macOS, iOS, etc.)
     ///
     /// - Parameters:
-    ///   - response: The HTTPURLResponse object
-    ///   - data: The response data
+    ///   - response: The URLResponse object
+    ///   - stream: The response data bytes
     /// - Throws: MCPError for data processing failures
-    private func processResponse(response: HTTPURLResponse, data: Data) async throws {
-        // Process response headers
-        let contentType = response.value(forHTTPHeaderField: "Content-Type") ?? ""
+    private func processResponse(response: URLResponse, stream: URLSession.AsyncBytes)
+        async throws {
+        guard let httpResponse = response as? HTTPURLResponse else { // Corrected line
+            throw MCPError.internalError("Invalid HTTP response")
+        }
+
+        // Process the response based on content type and status code
+        let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type") ?? ""
 
         // Extract session ID if present
-        if let newSessionID = response.value(forHTTPHeaderField: "Mcp-Session-Id") {
+        if let newSessionID = httpResponse.value(forHTTPHeaderField: "Mcp-Session-Id") {
             let wasSessionIDNil = (self.sessionID == nil)
             self.sessionID = newSessionID
             if wasSessionIDNil {
                 // Trigger signal on first session ID
                 triggerInitialSessionIDSignal()
             }
-            logger.debug("Session ID received", metadata: ["sessionID": "\(newSessionID)"])
+            logger.debug("Session ID received", metadata: ["sessionID": .string(newSessionID)])
         }
 
-        try processHTTPResponse(response, contentType: contentType)
-        guard case 200..<300 = response.statusCode else { return }
+        try processHTTPResponse(httpResponse, contentType: contentType)
+        guard case 200..<300 = httpResponse.statusCode else { return }
 
-        // For JSON responses, deliver the data directly
-        if contentType.contains("application/json") {
-            logger.trace("Received JSON response", metadata: ["size": .string("\(data.count)")])
-            messageContinuation.yield(data)
-        } else {
-            logger.warning("Unexpected content type: \(contentType)")
-        }
-    }
-
-    #if os(Linux)
-        // Process response with data payload (Linux)
-        private func processResponse(response: URLResponse, data: Data) async throws {
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw MCPError.internalError("Invalid HTTP response")
-            }
-
-            // Process the response based on content type and status code
-            let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type") ?? ""
-
-            // Extract session ID if present
-            if let newSessionID = httpResponse.value(forHTTPHeaderField: "Mcp-Session-Id") {
-                let wasSessionIDNil = (self.sessionID == nil)
-                self.sessionID = newSessionID
-                if wasSessionIDNil {
-                    // Trigger signal on first session ID
-                    triggerInitialSessionIDSignal()
-                }
-                logger.debug("Session ID received", metadata: ["sessionID": .string(newSessionID)])
-            }
-
-            try processHTTPResponse(httpResponse, contentType: contentType)
-            guard case 200..<300 = httpResponse.statusCode else { return }
-
-            // For JSON responses, yield the data
-            if contentType.contains("text/event-stream") {
-                logger.warning("SSE responses aren't fully supported on Linux", metadata: [:])
-                messageContinuation.yield(data)
-            } else if contentType.contains("application/json") {
-                logger.trace("Received JSON response", metadata: ["size": .string("\(data.count)")])
-                messageContinuation.yield(data)
-            } else {
-                logger.warning("Unexpected content type: $contentType)", metadata: [:])
-            }
-        }
-    #else
-        // Process response with byte stream (macOS, iOS, etc.)
-        private func processResponse(response: URLResponse, stream: URLSession.AsyncBytes)
-            async throws {
-            guard let httpResponse = response as? HTTPURLResponse else { // Corrected line
-                throw MCPError.internalError("Invalid HTTP response")
-            }
-
-            // Process the response based on content type and status code
-            let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type") ?? ""
-
-            // Extract session ID if present
-            if let newSessionID = httpResponse.value(forHTTPHeaderField: "Mcp-Session-Id") {
-                let wasSessionIDNil = (self.sessionID == nil)
-                self.sessionID = newSessionID
-                if wasSessionIDNil {
-                    // Trigger signal on first session ID
-                    triggerInitialSessionIDSignal()
-                }
-                logger.debug("Session ID received", metadata: ["sessionID": .string(newSessionID)])
-            }
-
-            try processHTTPResponse(httpResponse, contentType: contentType)
-            guard case 200..<300 = httpResponse.statusCode else { return }
-
-            if contentType.contains("text/event-stream") {
-                // For SSE, processing happens via the stream
-                logger.trace("Received SSE response, processing in streaming task", metadata: [:])
-                try await self.processSSE(stream)
-            } else if contentType.contains("application/json") {
-                // For JSON responses, collect and deliver the data
-                let length = httpResponse.expectedContentLength
-                if length == NSURLSessionTransferSizeUnknown {
-                    // If no valid content length, log warning and read until EOF
-                    var buffer = Data()
-                    for try await byte in stream {
-                        buffer.append(byte)
-                    }
-                    logger.trace("Received JSON response without Content-Length", metadata: ["size": .string("\(buffer.count)")])
-                    messageContinuation.yield(buffer)
-                    return
-                }
-                
-                // If we have valid content length, read exactly that many bytes
-                let lengthInt = Int(length)
-                var buffer = Data(capacity: lengthInt)
+        if contentType.contains("text/event-stream") {
+            // For SSE, processing happens via the stream
+            logger.trace("Received SSE response, processing in streaming task", metadata: [:])
+            try await self.processSSE(stream)
+        } else if contentType.contains("application/json") {
+            // For JSON responses, collect and deliver the data
+            let length = httpResponse.expectedContentLength
+            if length == NSURLSessionTransferSizeUnknown {
+                // If no valid content length, log warning and read until EOF
+                var buffer = Data()
                 for try await byte in stream {
                     buffer.append(byte)
-                    messageContinuation.yield(buffer)
                 }
-                logger.trace("Received JSON response with Content-Length", metadata: ["size": .string("\(buffer.count)")])
-                
-            } else {
-                logger.warning("Unexpected content type: \(contentType)", metadata: [:])
+                logger.trace("Received JSON response without Content-Length", metadata: ["size": .string("\(buffer.count)")])
+                messageContinuation.yield(buffer)
+                return
             }
+            
+            // If we have valid content length, read exactly that many bytes
+            let lengthInt = Int(length)
+            var buffer = Data(capacity: lengthInt)
+            for try await byte in stream {
+                buffer.append(byte)
+                messageContinuation.yield(buffer)
+            }
+            logger.trace("Received JSON response with Content-Length", metadata: ["size": .string("\(buffer.count)")])
+            
+        } else {
+            logger.warning("Unexpected content type: \(contentType)", metadata: [:])
         }
-    #endif
+    }
 
     // Common HTTP response handling for all platforms
     private func processHTTPResponse(_ response: HTTPURLResponse, contentType: String) throws {
@@ -460,19 +371,12 @@ public actor HTTPClientTransport: MCPTransport {
             "sessionID": .string(sessionID ?? "none")
         ])
         
-        #if os(Linux)
-        let (responseData, response) = try await session.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw MCPError.internalError("Invalid HTTP response")
-        }
-        return (responseData.makeAsyncBytes(), httpResponse)
-        #else
         let (stream, response) = try await session.bytes(for: request)
         guard let httpResponse = response as? HTTPURLResponse else {
             throw MCPError.internalError("Invalid HTTP response")
         }
+        
         return (stream, httpResponse)
-        #endif
     }
 
     /// Starts listening for server events using SSE
@@ -487,40 +391,29 @@ public actor HTTPClientTransport: MCPTransport {
     private func startListeningForServerEvents() async {
         guard isConnected else { return }
         
-        #if os(Linux)
-            // On Linux, treat SSE streaming as unsupported and return
-            if streaming {
-                logger.warning(
-                    "SSE streaming was requested but is not fully supported on Linux. SSE connection will not be attempted.",
-                    metadata: [:]
-                )
-            }
-            return
-        #else
-            // This is the original code for platforms that support SSE
-            // Retry loop for connection drops
-            while isConnected && !Task.isCancelled {
-                do {
-                    try await connectToEventStream()
-                    // If connectToEventStream() returns, the connection was closed normally - break out
-                    break
-                } catch let error as StreamableHTTPTransportError {
-                    switch error {
-                    case .methodNotAllowed:
-                        logger.warning("Server does not support SSE GET - stopping event listener")
-                        break // breaks the switch, but not the while - we'll break again below
-                    }
-                    // Break out of the retry loop after handling transport error
-                    break
-                } catch {
-                    if !Task.isCancelled {
-                        logger.error("SSE connection error: \(error)")
-                        // Wait before retrying
-                        try? await Task.sleep(for: .seconds(1))
-                    }
+        // This is the original code for platforms that support SSE
+        // Retry loop for connection drops
+        while isConnected && !Task.isCancelled {
+            do {
+                try await connectToEventStream()
+                // If connectToEventStream() returns, the connection was closed normally - break out
+                break
+            } catch let error as StreamableHTTPTransportError {
+                switch error {
+                case .methodNotAllowed:
+                    logger.warning("Server does not support SSE GET - stopping event listener")
+                    break // breaks the switch, but not the while - we'll break again below
+                }
+                // Break out of the retry loop after handling transport error
+                break
+            } catch {
+                if !Task.isCancelled {
+                    logger.error("SSE connection error: \(error)")
+                    // Wait before retrying
+                    try? await Task.sleep(for: .seconds(1))
                 }
             }
-        #endif
+        }
     }
     
     /// Establishes an event connection and processes events
@@ -569,7 +462,7 @@ public actor HTTPClientTransport: MCPTransport {
         let (stream, httpResponse) = try await establishEventConnection()
         
         // Check response status
-        guard httpResponse.statusCode == 200 else {
+        guard httpResponse.statusCode == HTTP_OK else {
             // According to MCP spec, servers MAY respond with 405 Method Not Allowed
             // if they don't support SSE streaming. In that case, we should continue
             // trying to connect periodically.
@@ -599,17 +492,10 @@ public actor HTTPClientTransport: MCPTransport {
         } else if contentType.contains("application/json") {
             // Handle HTTP long-polling response
             var buffer = Data()
-            #if os(Linux)
-            // For Linux, we can directly process the data
-            if case let .data(data) = stream {
-                buffer = data
-            }
-            #else
             // For other platforms, collect bytes from the stream
             for try await byte in stream {
                 buffer.append(byte)
             }
-            #endif
             if !buffer.isEmpty {
                 messageContinuation.yield(buffer)
             }

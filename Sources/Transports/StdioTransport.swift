@@ -72,9 +72,7 @@ public actor StdioTransport: MCPTransport {
                 factory: { _ in SwiftLogNoOpLogHandler() })
 
         // Create message stream
-        var continuation: AsyncThrowingStream<Data, Swift.Error>.Continuation!
-        self.messageStream = AsyncThrowingStream { continuation = $0 }
-        self.messageContinuation = continuation
+        (messageStream, messageContinuation) = AsyncThrowingStream.makeStream(of: Data.self, throwing: Swift.Error.self)
     }
 
     /// Establishes connection with the transport
