@@ -31,24 +31,30 @@ struct MCPClientExternalTests {
 
         // Connect to the server
         let result = try await client.connect(transport: transport)
-//        #expect(await transport.isConnected == true, "MCPClient should be connected")
 
         print("Result: \(result)")
-        // List prompts
-        let (prompts, _) = try await client.listPrompts()
-        print("Found \(prompts.count) prompts.")
+        if result.capabilities.prompts != nil {
+            // List prompts
+            let (prompts, _) = try await client.listPrompts()
+            print("Found \(prompts.count) prompts.")
+        }
 
-        // List resources
-        let (resources, _) = try await client.listResources()
-        print("Found \(resources.count) resources.")
+        if result.capabilities.resources != nil {
+            // List resources
+            let (resources, _) = try await client.listResources()
+            #expect(!resources.isEmpty, "List of resources should not be empty")
+            print("Found \(resources.count) resources.")
+        }
+        
+        if result.capabilities.tools != nil {
+            // List tools
+            let (tools, _) = try await client.listTools()
+            #expect(!tools.isEmpty, "List of tools should not be empty")
+            print("Tools: \(tools)")
 
-        // List tools
-        let (tools, _) = try await client.listTools()
-        #expect(!tools.isEmpty, "List of tools should not be empty")
-        print("Found \(tools.count) tools.")
+        }
 
         // Disconnect
         await client.disconnect()
-//        #expect(await transport.isConnected == false, "MCPClient should be disconnected")
     }
 }

@@ -88,7 +88,7 @@ public actor MCPClient {
     }
 
     /// The connection to the server
-    private var connection: (any MCPTransport)?
+    private var connection: MCPTransport?
     /// The logger for the client
     private var logger: Logger? {
         get async {
@@ -229,7 +229,7 @@ public actor MCPClient {
         }
 
         // Automatically initialize after connecting
-        return try await _initialize()
+        return try await initialize()
     }
 
     /// Disconnect the client and cancel all pending requests
@@ -493,23 +493,8 @@ public actor MCPClient {
 
     // MARK: - Lifecycle
 
-    /// Initialize the connection with the server.
-    ///
-    /// - Important: This method is deprecated. Initialization now happens automatically
-    ///   when calling `connect(transport:)`. You should use that method instead.
-    ///
-    /// - Returns: The server's initialization response containing capabilities and server info
-    @available(
-        *, deprecated,
-        message:
-            "Initialization now happens automatically during connect. Use connect(transport:) instead."
-    )
-    public func initialize() async throws -> MCPInitialize.Result {
-        return try await _initialize()
-    }
-
     /// Internal initialization implementation
-    private func _initialize() async throws -> MCPInitialize.Result {
+    private func initialize() async throws -> MCPInitialize.Result {
         let request = MCPInitialize.request(
             .init(
                 protocolVersion: MCPVersion.latest,
@@ -522,20 +507,6 @@ public actor MCPClient {
         self.serverCapabilities = result.capabilities
         self.serverVersion = result.protocolVersion
         self.instructions = result.instructions
-
-//        // If the transport is an HTTPClientTransport and it's configured for streaming,
-//        // tell it to start the SSE listener now that initialization is complete.
-//        if let httpClientTransport = self.connection as? HTTPClientTransport
-//        {
-//            // Start in a detached task to avoid delaying initialization
-//            Task {
-//                do {
-//                    try await httpClientTransport.startStreaming()
-//                } catch {
-//                    await logger?.error("SSE streaming start failed: \(error)")
-//                }
-//            }
-//        }
 
         try await notify(MCPInitializeNotification.message())
 
