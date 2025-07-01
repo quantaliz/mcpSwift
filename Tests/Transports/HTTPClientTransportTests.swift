@@ -424,7 +424,7 @@ import Testing
                     endpoint: testEndpoint,
                     configuration: configuration,
                     streaming: true,
-                    sseInitializationTimeout: 1,
+                    initTimeout: 1,
                     logger: nil
                 )
 
@@ -485,7 +485,7 @@ import Testing
                     endpoint: testEndpoint,
                     configuration: configuration,
                     streaming: true,
-                    sseInitializationTimeout: 1,
+                    initTimeout: 1,
                     logger: nil
                 )
 
