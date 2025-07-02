@@ -71,11 +71,17 @@ public actor MCPClient {
         self.connection = transport
         try await self.connection?.connect()
 
-        await logger?.info(
-            "Client connected", metadata: ["name": "\(name)", "version": "\(version)"])
+        await logger?.info("Client initalized", metadata: ["name": "\(name)", "version": "\(version)"])
 
         // Start message handling loop
-        task = Task {
+        task = connectTask()
+
+        // Automatically initialize after connecting
+        return try await initialize()
+    }
+    
+    func connectTask()  -> Task<Void, Never> {
+        return Task {
             guard let connection = self.connection else { return }
             repeat {
                 // Check for cancellation before starting the iteration
@@ -116,9 +122,6 @@ public actor MCPClient {
             } while true
             await self.logger?.info("Client message handling loop task is terminating.")
         }
-
-        // Automatically initialize after connecting
-        return try await initialize()
     }
 
     /// Disconnect the client and cancel all pending requests

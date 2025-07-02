@@ -1,8 +1,8 @@
 //
-//  MCPClient.swift
+//  MCPClientExtension.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
-//  modify date 18/06/2025
+//  modify date 2/07/2025
 //
 //  License MIT
 //
