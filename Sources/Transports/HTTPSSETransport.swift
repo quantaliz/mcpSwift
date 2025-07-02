@@ -1,5 +1,5 @@
 //
-//  HTTPClientTransport.swift
+//  HTTPSSETransport.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -11,21 +11,16 @@ import EventSource
 import Foundation
 import Logging
 
-/// An implementation of the MCP Streamable HTTP transport protocol for clients.
+/// An implementation of the MCP HTTP+SSE transport protocol for clients.
 ///
-/// This transport implements the [Streamable HTTP transport](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http)
+/// This transport implements the [HTTP with SSE transport](https://modelcontextprotocol.io/specification/2024-11-05/basic/transports#http-with-sse)
 /// specification from the Model Context Protocol.
 ///
 /// It supports:
 /// - Sending JSON-RPC messages via HTTP POST requests
-/// - Receiving responses via both direct JSON responses and SSE streams
-/// - Session management using the `Mcp-Session-Id` header
+/// - Receiving responses via SSE stream
+/// - Session management using the `session_id`
 /// - Automatic reconnection for dropped SSE streams
-/// - Platform-specific optimizations for different operating systems
-///
-/// The transport supports two modes:
-/// - Regular HTTP (`streaming=false`): Simple request/response pattern
-/// - Streaming HTTP (`streaming=true`): Enables server-to-client push messages
 ///
 /// ## Example Usage
 ///
@@ -33,7 +28,7 @@ import Logging
 /// import MCP
 ///
 /// // Create a streaming HTTP transport
-/// let transport = HTTPClientTransport(
+/// let transport = HTTPSSETransport(
 ///     endpoint: URL(string: "http://localhost:8080")!,
 /// )
 ///
@@ -44,16 +39,15 @@ import Logging
 /// // The transport will automatically handle SSE events
 /// // and deliver them through the client's notification handlers
 /// ```
-public actor HTTPClientTransport: MCPTransport {
+public actor HTTPSSETransport: MCPTransport {
     /// The server endpoint URL to connect to
     public let endpoint: URL
     private let session: URLSession
 
     /// The session ID assigned by the server, used for maintaining state across requests
     public private(set) var sessionID: String?
-    private let streaming: Bool
     private var streamingTask: Task<Void, Never>?
-
+    
     /// Logger instance for transport-related events
     public nonisolated let logger: Logger
 
@@ -76,13 +70,12 @@ public actor HTTPClientTransport: MCPTransport {
     public init(
         endpoint: URL,
         configuration: URLSessionConfiguration = .default,
-        streaming: Bool = true,
         initTimeout: TimeInterval = 10,
         logger: Logger? = nil
     ) {
         self.endpoint = endpoint
         self.session = URLSession(configuration: configuration)
-        self.streaming = streaming
+        
         self.initTimeout = initTimeout
 
         // Create message stream
@@ -91,7 +84,7 @@ public actor HTTPClientTransport: MCPTransport {
         self.logger =
             logger
             ?? Logger(
-                label: "mcp.transport.httpclient",
+                label: "mcp.transport.httpsse",
                 factory: { _ in SwiftLogNoOpLogHandler() }
             )
     }
@@ -105,11 +98,7 @@ public actor HTTPClientTransport: MCPTransport {
         guard !transportEnabled else { return }
         transportEnabled = true
 
-        if streaming {
-            // Start listening to server events
-            try await startStreaming()
-        }
-
+        try await connectToEventStream()
         logger.info("HTTP transport connected")
     }
 
@@ -131,7 +120,7 @@ public actor HTTPClientTransport: MCPTransport {
         // Clean up message stream
         messageContinuation.finish()
 
-        logger.info("HTTP clienttransport disconnected")
+        logger.info("HTTP+SSE transport disconnected")
     }
 
     /// Sends data through an HTTP POST request
@@ -150,7 +139,7 @@ public actor HTTPClientTransport: MCPTransport {
         guard transportEnabled else {
             throw MCPError.internalError("Transport not connected")
         }
-
+        
         let (responseStream, response) = try await sendRequest(httpMethod: "POST", body: data)
         try await processResponse(response: response, stream: responseStream)
     }
@@ -193,24 +182,17 @@ public actor HTTPClientTransport: MCPTransport {
             self.sessionID = newSessionID
             logger.debug("Session ID received", metadata: ["sessionID": "\(newSessionID)"])
         }
-
+        
         do {
             try processHTTPResponse(httpResponse)
         }
         catch MCPError.methodNotAllowed {
-            logger.error("Method not allowed, falling back to GET")
-            guard sessionID == nil else {
-                throw MCPError.methodNotAllowed
-            }
-            
-            logger.trace("Attempting GET request")
-            try await connectToEventStream()
-            
+            logger.error("Method not allowed in non-SSE endpoint")
+            throw MCPError.methodNotAllowed
         }
         catch {
             throw error
         }
-        
         
         guard case 200 ..< 300 = httpResponse.statusCode else {
             throw MCPError.serverError(code: httpResponse.statusCode, message: "Request failed")
@@ -224,7 +206,7 @@ public actor HTTPClientTransport: MCPTransport {
         if contentType.contains("text/event-stream") {
             // For SSE, processing happens via the stream
             logger.trace("Received SSE response, processing in streaming task")
-            try await self.processSSE(stream)
+//            try await self.processSSE(stream)
         } else if contentType.contains("application/json") {
             // For JSON responses, collect and deliver the data
             let buffer = try await processBytes(length: httpResponse.expectedContentLength,
@@ -243,6 +225,8 @@ public actor HTTPClientTransport: MCPTransport {
         }
         
         for try await byte in stream {
+            let car = Character(UnicodeScalar(byte))
+            print("\(car) - \(byte)")
             buffer.append(byte)
         }
         
@@ -278,9 +262,9 @@ public actor HTTPClientTransport: MCPTransport {
         case 405:
             // If we get a 405, it means the server does not support the requested method
             // If streaming was requested, we should cancel the streaming task
-            if streaming {
-                self.streamingTask?.cancel()
-            }
+//            if streaming {
+//                self.streamingTask?.cancel()
+//            }
             throw MCPError.methodNotAllowed
 
         case 408:
@@ -312,79 +296,6 @@ public actor HTTPClientTransport: MCPTransport {
         return messageStream
     }
 
-    /// Starts listening for server events using SSE.
-    ///
-    /// This method should be called by the client after successful initialization
-    /// and capability negotiation, if streaming is desired and supported.
-    ///
-    /// - Throws: `MCPError.internalError` if the transport is not connected or streaming is disabled.
-    public func startStreaming() async throws {
-        guard streaming else {
-            logger.info("Streaming is disabled for this transport instance.")
-            return
-        }
-        guard transportEnabled else {
-            throw MCPError.internalError("Transport not connected, cannot start streaming.")
-        }
-        guard streamingTask == nil else {
-            logger.info("Streaming task already running.")
-            return
-        }
-
-        // Start listening to server events
-        streamingTask = Task { await startListeningForServerEvents() }
-        logger.info("HTTP transport streaming started.")
-    }
-
-    /// Starts listening for server events
-    ///
-    /// This establishes a long-lived HTTP connection using Server-Sent Events (SSE)
-    /// to enable server-to-client push messaging. It handles:
-    ///
-    /// - Waiting for session ID if needed
-    /// - Opening the SSE connection
-    /// - Automatic reconnection on connection drops
-    /// - Processing received events
-    private func startListeningForServerEvents() async {
-        // This is the original code for platforms that support SSE
-        guard transportEnabled else { return }
-
-        // Retry loop for connection drops
-        while transportEnabled && !Task.isCancelled {
-            // Wait for the initial session ID signal, but only if sessionID isn't already set
-            if self.sessionID == nil {
-                let result = await waitForSessionID()
-                
-                if result == false {
-                    logger.error("Session ID not retrieved on time")
-                    break
-                }
-            }
-            
-            do {
-                try await connectToEventStream()
-                // If connectToEventStream() returns, the connection was closed normally - break out
-                break
-            } catch {
-                if !Task.isCancelled {
-                    logger.error("SSE connection error: \(error)")
-                    // Wait before retrying
-                    try? await Task.sleep(for: .seconds(1))
-                }
-            }
-        }
-    }
-    
-    private func waitForSessionID() async -> Bool {
-        try? await Task.sleep(for: .seconds(self.initTimeout))
-        if sessionID != nil {
-            return true
-        }
-        else {
-            return false
-        }
-    }
-    
     /// Establishes an event connection and processes events
     ///
     /// This follows the MCP specification for Streamable HTTP transport:
@@ -401,50 +312,21 @@ public actor HTTPClientTransport: MCPTransport {
             throw MCPError.internalError("Transport not connected")
         }
         
-        logger.debug("Starting SSE connection")
-
         // Create URLSession task for SSE
-        let (responseStream, response) = try await sendRequest(httpMethod: "GET", body: nil, noCache: true)
-        try await processResponse(response: response, stream: responseStream)
-    }
-
-    /// Processes an SSE byte stream, extracting events and delivering them
-    ///
-    /// - Parameter stream: The URLSession.AsyncBytes stream to process
-    /// - Throws: Error for stream processing failures
-    private func processSSE(_ stream: URLSession.AsyncBytes) async throws {
-        do {
-            var activeStream = true
-            for try await event in stream.events {
-                if !activeStream {
-                    break
-                }
-                
-                // Check if task has been cancelled
-                if Task.isCancelled { break }
-
-                logger.trace(
-                    "SSE event received",
-                    metadata: [
-                        "type": "\(event.event ?? "message")",
-                        "id": "\(event.id ?? "none")",
-                    ]
-                )
-                // Convert the event data to Data and yield it to the message stream
-                if !event.data.isEmpty, let data = event.data.data(using: .utf8) {
-                    messageContinuation.yield(data)
-                }
-                
-                // Check for server close events
-                if event.event == "end" || event.event == "close" {
-                    logger.debug("Server explicitly closed SSE stream")
-                    activeStream = false
-                }
+        streamingTask = Task {
+            logger.debug("Starting SSE connection")
+            do {
+                let (responseStream, response) = try await sendRequest(httpMethod: "GET", body: nil, noCache: true)
+                print("Resp: \(response)")
+                let dta = try await processBytes(length: NSURLSessionTransferSizeUnknown, stream: responseStream)
+                print("RespData: \(String(data: dta, encoding: .utf8) ?? "No data")")
                 
             }
-        } catch {
-            logger.error("Error processing SSE events: \(error)")
-            throw error
+            catch {
+                logger.error("SSE connection failed: \(error)")
+            }
+            logger.debug("SSE connection finished")
         }
     }
+
 }

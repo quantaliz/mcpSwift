@@ -1,5 +1,5 @@
 //
-//  HTTPClientTransportTests.swift
+//  HTTPStreamTransportTests.swift
 //  sourced from swift-sdk
 //  modified for mcpSwift
 //  modify date 18/06/2025
@@ -22,7 +22,7 @@ import Testing
     // MARK: - Test trait
 
     /// A test trait that automatically manages the mock URL protocol handler for HTTP client transport tests.
-    struct HTTPClientTransportTestSetupTrait: TestTrait, TestScoping {
+    struct HTTPStreamTransportTestSetupTrait: TestTrait, TestScoping {
         func provideScope(
             for test: Test, testCase: Test.Case?,
             performing function: @Sendable () async throws -> Void
@@ -38,8 +38,8 @@ import Testing
         }
     }
 
-    extension Trait where Self == HTTPClientTransportTestSetupTrait {
-        static var httpClientTransportSetup: Self { Self() }
+    extension Trait where Self == HTTPStreamTransportTestSetupTrait {
+        static var httpStreamTransportSetup: Self { Self() }
     }
 
     // MARK: - Mock Handler Registry Actor
@@ -139,15 +139,15 @@ import Testing
     // MARK: -
 
     @Suite("HTTP MCPClient MCPTransport Tests", .serialized)
-    struct HTTPClientTransportTests {
+    struct HTTPStreamTransportTests {
         let testEndpoint = URL(string: "http://localhost:8080/test")!
 
-        @Test("Connect and Disconnect", .httpClientTransportSetup)
+        @Test("Connect and Disconnect", .httpStreamTransportSetup)
         func testConnectAndDisconnect() async throws {
             let configuration = URLSessionConfiguration.ephemeral
             configuration.protocolClasses = [MockURLProtocol.self]
 
-            let transport = HTTPClientTransport(
+            let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
                 streaming: false,
@@ -158,12 +158,12 @@ import Testing
             await transport.disconnect()
         }
 
-        @Test("Send and Receive JSON Response", .httpClientTransportSetup)
+        @Test("Send and Receive JSON Response", .httpStreamTransportSetup)
         func testSendAndReceiveJSON() async throws {
             let configuration = URLSessionConfiguration.ephemeral
             configuration.protocolClasses = [MockURLProtocol.self]
 
-            let transport = HTTPClientTransport(
+            let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
                 streaming: false,
@@ -200,12 +200,12 @@ import Testing
             #expect(receivedData == responseData)
         }
 
-        @Test("Send and Receive Session ID", .httpClientTransportSetup)
+        @Test("Send and Receive Session ID", .httpStreamTransportSetup)
         func testSendAndReceiveSessionID() async throws {
             let configuration = URLSessionConfiguration.ephemeral
             configuration.protocolClasses = [MockURLProtocol.self]
 
-            let transport = HTTPClientTransport(
+            let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
                 streaming: false,
@@ -234,12 +234,12 @@ import Testing
             #expect(storedSessionID == newSessionID)
         }
 
-        @Test("Send With Existing Session ID", .httpClientTransportSetup)
+        @Test("Send With Existing Session ID", .httpStreamTransportSetup)
         func testSendWithExistingSessionID() async throws {
             let configuration = URLSessionConfiguration.ephemeral
             configuration.protocolClasses = [MockURLProtocol.self]
 
-            let transport = HTTPClientTransport(
+            let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
                 streaming: false,
@@ -283,12 +283,12 @@ import Testing
             #expect(await transport.sessionID == initialSessionID)
         }
 
-        @Test("HTTP 404 Not Found Error", .httpClientTransportSetup)
+        @Test("HTTP 404 Not Found Error", .httpStreamTransportSetup)
         func testHTTPNotFoundError() async throws {
             let configuration = URLSessionConfiguration.ephemeral
             configuration.protocolClasses = [MockURLProtocol.self]
 
-            let transport = HTTPClientTransport(
+            let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
                 streaming: false,
@@ -320,12 +320,12 @@ import Testing
             }
         }
 
-        @Test("HTTP 500 Server Error", .httpClientTransportSetup)
+        @Test("HTTP 500 Server Error", .httpStreamTransportSetup)
         func testHTTPServerError() async throws {
             let configuration = URLSessionConfiguration.ephemeral
             configuration.protocolClasses = [MockURLProtocol.self]
 
-            let transport = HTTPClientTransport(
+            let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
                 streaming: false,
@@ -357,12 +357,12 @@ import Testing
             }
         }
 
-        @Test("Session Expired Error (404 with Session ID)", .httpClientTransportSetup)
+        @Test("Session Expired Error (404 with Session ID)", .httpStreamTransportSetup)
         func testSessionExpiredError() async throws {
             let configuration = URLSessionConfiguration.ephemeral
             configuration.protocolClasses = [MockURLProtocol.self]
 
-            let transport = HTTPClientTransport(
+            let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
                 streaming: false,
@@ -415,12 +415,12 @@ import Testing
 
         // Skip SSE tests on platforms that don't support streaming
         #if !canImport(FoundationNetworking)
-            @Test("Receive Server-Sent Event (SSE)", .httpClientTransportSetup)
+            @Test("Receive Server-Sent Event (SSE)", .httpStreamTransportSetup)
             func testReceiveSSE() async throws {
                 let configuration = URLSessionConfiguration.ephemeral
                 configuration.protocolClasses = [MockURLProtocol.self]
 
-                let transport = HTTPClientTransport(
+                let transport = HTTPStreamTransport(
                     endpoint: testEndpoint,
                     configuration: configuration,
                     streaming: true,
@@ -476,12 +476,12 @@ import Testing
                 await transport.disconnect()
             }
 
-            @Test("Receive Server-Sent Event (SSE) (CR-NL)", .httpClientTransportSetup)
+            @Test("Receive Server-Sent Event (SSE) (CR-NL)", .httpStreamTransportSetup)
             func testReceiveSSE_CRNL() async throws {
                 let configuration = URLSessionConfiguration.ephemeral
                 configuration.protocolClasses = [MockURLProtocol.self]
 
-                let transport = HTTPClientTransport(
+                let transport = HTTPStreamTransport(
                     endpoint: testEndpoint,
                     configuration: configuration,
                     streaming: true,
@@ -540,13 +540,13 @@ import Testing
         #endif  // !canImport(FoundationNetworking)
 
         @Test(
-            "MCPClient with HTTP MCPTransport complete flow", .httpClientTransportSetup,
+            "MCPClient with HTTP MCPTransport complete flow", .httpStreamTransportSetup,
             .timeLimit(.minutes(1)))
         func testClientFlow() async throws {
             let configuration = URLSessionConfiguration.ephemeral
             configuration.protocolClasses = [MockURLProtocol.self]
 
-            let transport = HTTPClientTransport(
+            let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
                 streaming: false,
