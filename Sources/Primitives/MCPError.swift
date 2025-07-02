@@ -18,13 +18,13 @@ public enum MCPError: Swift.Error, Sendable {
     case methodNotFound(String?)  // -32601
     case invalidParams(String?)  // -32602
     case internalError(String?)  // -32603
-
     // Server errors (-32000 to -32099)
     case serverError(code: Int, message: String)
 
     // MCPTransport specific errors
     case connectionClosed
     case transportError(Swift.Error)
+    case methodNotAllowed // HTTP 405
 
     /// The JSON-RPC 2.0 error code
     public var code: Int {
@@ -37,6 +37,7 @@ public enum MCPError: Swift.Error, Sendable {
         case .serverError(let code, _): return code
         case .connectionClosed: return -32000
         case .transportError: return -32001
+        case .methodNotAllowed: return -405
         }
     }
 
@@ -70,6 +71,8 @@ extension MCPError: LocalizedError {
             return "Connection closed"
         case .transportError(let error):
             return "Transport error: \(error.localizedDescription)"
+        case .methodNotAllowed:
+            return "Method not allowed"
         }
     }
 
@@ -91,6 +94,8 @@ extension MCPError: LocalizedError {
             return "The connection to the server was closed"
         case .transportError(let error):
             return (error as? LocalizedError)?.failureReason ?? error.localizedDescription
+        case .methodNotAllowed:
+            return "Server does not support Streaming-HTTP"
         }
     }
 
@@ -106,6 +111,8 @@ extension MCPError: LocalizedError {
             return "Verify the parameters match the method's expected parameters"
         case .connectionClosed:
             return "Try reconnecting to the server"
+        case .methodNotAllowed:
+            return "Make a GET request instead"
         default:
             return nil
         }
@@ -149,9 +156,10 @@ extension MCPError: Codable {
             if let detail = detail {
                 try container.encode(["detail": detail], forKey: .data)
             }
+        case .methodNotAllowed: fallthrough
         case .serverError:
             // No additional data for server errors
-            break
+            fallthrough
         case .connectionClosed:
             break
         case .transportError(let error):
@@ -234,6 +242,7 @@ extension MCPError: Hashable {
             hasher.combine(detail)
         case .serverError(_, let message):
             hasher.combine(message)
+        case .methodNotAllowed: fallthrough
         case .connectionClosed:
             break
         case .transportError(let error):

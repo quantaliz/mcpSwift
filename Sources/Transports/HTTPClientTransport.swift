@@ -194,7 +194,23 @@ public actor HTTPClientTransport: MCPTransport {
             logger.debug("Session ID received", metadata: ["sessionID": "\(newSessionID)"])
         }
 
-        try processHTTPResponse(httpResponse)
+        do {
+            try processHTTPResponse(httpResponse)
+        }
+        catch MCPError.methodNotAllowed {
+            logger.error("Method not allowed, falling back to GET")
+            guard sessionID == nil else {
+                throw MCPError.methodNotAllowed
+            }
+            
+            logger.trace("Attempting GET request")
+            try await connectToEventStream()
+            
+        }
+        catch {
+            throw error
+        }
+        
         
         guard case 200 ..< 300 = httpResponse.statusCode else {
             throw MCPError.serverError(code: httpResponse.statusCode, message: "Request failed")
@@ -264,9 +280,8 @@ public actor HTTPClientTransport: MCPTransport {
             // If streaming was requested, we should cancel the streaming task
             if streaming {
                 self.streamingTask?.cancel()
-                throw MCPError.internalError("Server does not support streaming")
             }
-            throw MCPError.internalError("Method not allowed")
+            throw MCPError.methodNotAllowed
 
         case 408:
             throw MCPError.internalError("Request timeout")

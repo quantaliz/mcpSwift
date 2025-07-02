@@ -20,7 +20,8 @@ struct MCPClientExternalTests {
         .timeLimit(.minutes(1))  // Set a 1-minute timeout for the entire test
     )
     func testLiveServerConnectionAndCapabilities() async throws {
-        let logger = Logger(label: "com.mcpswift")
+        var logger = Logger(label: "com.mcpswift")
+        logger.logLevel = .trace
         let url = URL(
             string:
 //                "https://agents-mcp-hackathon-quantaliz-mcp-micropayments.hf.space/gradio_api/mcp/sse"
