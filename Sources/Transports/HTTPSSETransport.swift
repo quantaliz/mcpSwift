@@ -41,7 +41,7 @@ import Logging
 /// ```
 public actor HTTPSSETransport: MCPTransport {
     /// The server endpoint URL to connect to
-    public let endpoint: URL
+    public var endpoint: URL
     private let session: URLSession
 
     /// The session ID assigned by the server, used for maintaining state across requests
@@ -54,6 +54,9 @@ public actor HTTPSSETransport: MCPTransport {
     /// Maximum time to wait for a session ID before proceeding with SSE connection
     public let initTimeout: TimeInterval
 
+    /// SSE needs to return the endpoint to use for POST requests
+    private var waitingEndpoint: Bool = true
+    
     /// Boolean to signal that the HTTPClient can perform requests
     private var transportEnabled = false
     private let messageStream: AsyncThrowingStream<Data, Swift.Error>
@@ -140,6 +143,13 @@ public actor HTTPSSETransport: MCPTransport {
             throw MCPError.internalError("Transport not connected")
         }
         
+        while waitingEndpoint == true {
+            try await Task.sleep(for: .milliseconds(10))
+            if waitingEndpoint == true {
+                return
+            }
+        }
+        
         let (responseStream, response) = try await sendRequest(httpMethod: "POST", body: data)
         try await processResponse(response: response, stream: responseStream)
     }
@@ -147,7 +157,7 @@ public actor HTTPSSETransport: MCPTransport {
     private func sendRequest(httpMethod: String, body: Data?, noCache: Bool = false) async throws -> (URLSession.AsyncBytes, URLResponse) {
         var request = URLRequest(url: endpoint)
         request.httpMethod = httpMethod
-        request.addValue("application/json, text/event-stream", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
         if noCache == true {
@@ -206,7 +216,7 @@ public actor HTTPSSETransport: MCPTransport {
         if contentType.contains("text/event-stream") {
             // For SSE, processing happens via the stream
             logger.trace("Received SSE response, processing in streaming task")
-//            try await self.processSSE(stream)
+            try await processSSE(stream)
         } else if contentType.contains("application/json") {
             // For JSON responses, collect and deliver the data
             let buffer = try await processBytes(length: httpResponse.expectedContentLength,
@@ -225,8 +235,6 @@ public actor HTTPSSETransport: MCPTransport {
         }
         
         for try await byte in stream {
-            let car = Character(UnicodeScalar(byte))
-            print("\(car) - \(byte)")
             buffer.append(byte)
         }
         
@@ -312,21 +320,87 @@ public actor HTTPSSETransport: MCPTransport {
             throw MCPError.internalError("Transport not connected")
         }
         
+        waitingEndpoint = true
         // Create URLSession task for SSE
         streamingTask = Task {
             logger.debug("Starting SSE connection")
             do {
                 let (responseStream, response) = try await sendRequest(httpMethod: "GET", body: nil, noCache: true)
-                print("Resp: \(response)")
-                let dta = try await processBytes(length: NSURLSessionTransferSizeUnknown, stream: responseStream)
-                print("RespData: \(String(data: dta, encoding: .utf8) ?? "No data")")
-                
+                try await processResponse(response: response, stream: responseStream)
             }
             catch {
                 logger.error("SSE connection failed: \(error)")
+                return
             }
             logger.debug("SSE connection finished")
         }
     }
 
+    /// Processes an SSE byte stream, extracting events and delivering them
+    ///
+    /// - Parameter stream: The URLSession.AsyncBytes stream to process
+    /// - Throws: Error for stream processing failures
+    private func processSSE(_ stream: URLSession.AsyncBytes) async throws {
+        var activeStream = true
+        for try await event in stream.events {
+            if !activeStream {
+                break
+            }
+            
+            // Check if task has been cancelled
+            if Task.isCancelled { break }
+            
+            processEvent(event)
+            
+            // Check for server close events
+            if event.event == "end" || event.event == "close" {
+                logger.debug("Server explicitly closed SSE stream")
+                activeStream = false
+            }
+            
+        }
+    }
+    
+    func processEvent(_ event: EventSource.Event) {
+        logger.trace(
+            "SSE event received",
+            metadata: [
+                "type": "\(event.event ?? "message")",
+                "id": "\(event.id ?? "none")",
+            ]
+        )
+        
+        // Convert the event data to Data and yield it to the message stream
+        guard !event.data.isEmpty, let data = event.data.data(using: .utf8) else {
+            logger.warning("Empty data from SSE")
+            return
+        }
+        
+        if event.event == "endpoint"
+        {
+            endpoint = retrieveURL(data, endpoint: endpoint)
+            waitingEndpoint = false
+        }
+        else {
+            messageContinuation.yield(data)
+        }
+    }
+    
+    func retrieveURL(_ data: Data, endpoint: URL) -> URL {
+        guard let extra = String(data: data, encoding: .utf8),
+              var endpointComp = URLComponents(url: endpoint, resolvingAgainstBaseURL: true)
+        else {
+            return endpoint
+        }
+        
+        endpointComp.path = extra
+        if let finalEndpoint = endpointComp.url?.absoluteString.removingPercentEncoding,
+           let finalURL = URL(string: finalEndpoint)
+        {
+            return finalURL
+        }
+        else {
+            return endpoint
+        }
+    }
 }
