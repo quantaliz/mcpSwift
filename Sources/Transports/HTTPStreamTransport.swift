@@ -58,7 +58,7 @@ public actor HTTPStreamTransport: MCPTransport {
     public nonisolated let logger: Logger
 
     /// Maximum time to wait for a session ID before proceeding with SSE connection
-    public let initTimeout: TimeInterval
+    public let initTimeout: Duration
 
     /// Boolean to signal that the HTTPClient can perform requests
     private var transportEnabled = false
@@ -77,7 +77,7 @@ public actor HTTPStreamTransport: MCPTransport {
         endpoint: URL,
         configuration: URLSessionConfiguration = .default,
         streaming: Bool = true,
-        initTimeout: TimeInterval = 10,
+        initTimeout: Duration = .seconds(5),
         logger: Logger? = nil
     ) {
         self.endpoint = endpoint
@@ -362,7 +362,7 @@ public actor HTTPStreamTransport: MCPTransport {
     }
     
     private func waitForSessionID() async -> Bool {
-        try? await Task.sleep(for: .seconds(self.initTimeout))
+        try? await Task.sleep(for: initTimeout)
         if sessionID != nil {
             return true
         }

@@ -52,7 +52,7 @@ public actor HTTPSSETransport: MCPTransport {
     public nonisolated let logger: Logger
 
     /// Maximum time to wait for a session ID before proceeding with SSE connection
-    public let initTimeout: TimeInterval
+    public let initTimeout: Duration
 
     /// SSE needs to return the endpoint to use for POST requests
     private var waitingEndpoint: Bool = true
@@ -73,7 +73,7 @@ public actor HTTPSSETransport: MCPTransport {
     public init(
         endpoint: URL,
         configuration: URLSessionConfiguration = .default,
-        initTimeout: TimeInterval = 10,
+        initTimeout: Duration = .seconds(5),
         logger: Logger? = nil
     ) {
         self.endpoint = endpoint
@@ -144,9 +144,9 @@ public actor HTTPSSETransport: MCPTransport {
         }
         
         while waitingEndpoint == true {
-            try await Task.sleep(for: .milliseconds(10))
+            try await Task.sleep(for: initTimeout)
             if waitingEndpoint == true {
-                return
+                throw MCPError.requestTimeout
             }
         }
         
@@ -193,16 +193,7 @@ public actor HTTPSSETransport: MCPTransport {
             logger.debug("Session ID received", metadata: ["sessionID": "\(newSessionID)"])
         }
         
-        do {
-            try processHTTPResponse(httpResponse)
-        }
-        catch MCPError.methodNotAllowed {
-            logger.error("Method not allowed in non-SSE endpoint")
-            throw MCPError.methodNotAllowed
-        }
-        catch {
-            throw error
-        }
+        try processHTTPResponse(httpResponse)
         
         guard case 200 ..< 300 = httpResponse.statusCode else {
             throw MCPError.serverError(code: httpResponse.statusCode, message: "Request failed")
@@ -210,6 +201,13 @@ public actor HTTPSSETransport: MCPTransport {
 
         // Process the response based on content type and status code
         guard let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type") else {
+            #if DEBUG
+            logger.warning("No known content type for response")
+            let buffer = try await processBytes(length: httpResponse.expectedContentLength,
+                                                stream: stream)
+            let str = String(data: buffer, encoding: .utf8) ?? "[binary data]"
+            logger.trace("Response bytes: `\(str)`", metadata: ["size": "\(buffer.count)"])
+            #endif
             return
         }
         
@@ -323,7 +321,7 @@ public actor HTTPSSETransport: MCPTransport {
         waitingEndpoint = true
         // Create URLSession task for SSE
         streamingTask = Task {
-            logger.debug("Starting SSE connection")
+            logger.trace("Starting SSE connection")
             do {
                 let (responseStream, response) = try await sendRequest(httpMethod: "GET", body: nil, noCache: true)
                 try await processResponse(response: response, stream: responseStream)
@@ -332,7 +330,7 @@ public actor HTTPSSETransport: MCPTransport {
                 logger.error("SSE connection failed: \(error)")
                 return
             }
-            logger.debug("SSE connection finished")
+            logger.trace("SSE connection finished")
         }
     }
 
@@ -354,10 +352,9 @@ public actor HTTPSSETransport: MCPTransport {
             
             // Check for server close events
             if event.event == "end" || event.event == "close" {
-                logger.debug("Server explicitly closed SSE stream")
+                logger.trace("Server explicitly closed SSE stream")
                 activeStream = false
             }
-            
         }
     }
     

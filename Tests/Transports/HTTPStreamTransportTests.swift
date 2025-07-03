@@ -424,7 +424,6 @@ import Testing
                     endpoint: testEndpoint,
                     configuration: configuration,
                     streaming: true,
-                    initTimeout: 1,
                     logger: nil
                 )
 
@@ -485,7 +484,6 @@ import Testing
                     endpoint: testEndpoint,
                     configuration: configuration,
                     streaming: true,
-                    initTimeout: 1,
                     logger: nil
                 )
 
