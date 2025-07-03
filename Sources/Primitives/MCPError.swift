@@ -25,6 +25,7 @@ public enum MCPError: Swift.Error, Sendable {
     case connectionClosed
     case transportError(Swift.Error)
     case methodNotAllowed // HTTP 405
+    case requestTimeout // Local error
 
     /// The JSON-RPC 2.0 error code
     public var code: Int {
@@ -38,6 +39,7 @@ public enum MCPError: Swift.Error, Sendable {
         case .connectionClosed: return -32000
         case .transportError: return -32001
         case .methodNotAllowed: return -405
+        case .requestTimeout: return -1011
         }
     }
 
@@ -73,6 +75,8 @@ extension MCPError: LocalizedError {
             return "Transport error: \(error.localizedDescription)"
         case .methodNotAllowed:
             return "Method not allowed"
+        case .requestTimeout:
+            return "The request timed out"
         }
     }
 
@@ -96,6 +100,8 @@ extension MCPError: LocalizedError {
             return (error as? LocalizedError)?.failureReason ?? error.localizedDescription
         case .methodNotAllowed:
             return "Server does not support Streaming-HTTP"
+        case .requestTimeout:
+            return "The request did not receive a response within the allowed time"
         }
     }
 
@@ -113,6 +119,8 @@ extension MCPError: LocalizedError {
             return "Try reconnecting to the server"
         case .methodNotAllowed:
             return "Make a GET request instead"
+        case .requestTimeout:
+            return "Try again later or check the server's responsiveness"
         default:
             return nil
         }
@@ -157,6 +165,7 @@ extension MCPError: Codable {
                 try container.encode(["detail": detail], forKey: .data)
             }
         case .methodNotAllowed: fallthrough
+        case .requestTimeout: fallthrough
         case .serverError:
             // No additional data for server errors
             fallthrough
@@ -242,6 +251,7 @@ extension MCPError: Hashable {
             hasher.combine(detail)
         case .serverError(_, let message):
             hasher.combine(message)
+        case .requestTimeout: fallthrough
         case .methodNotAllowed: fallthrough
         case .connectionClosed:
             break
