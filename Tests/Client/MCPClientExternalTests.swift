@@ -28,8 +28,7 @@ struct MCPClientExternalTests {
                 "https://mcp.deepwiki.com/mcp"
         )!
 
-//        let transport = HTTPStreamTransport(endpoint: url, streaming: false, logger: logger)
-        let transport = HTTPStreamTransport(endpoint: url, streaming: true, logger: logger)
+        let transport = HTTPStreamTransport(endpoint: url, logger: logger)
         let client = MCPClient(name: "TestClient", version: "1.0")
 
         // Connect to the server

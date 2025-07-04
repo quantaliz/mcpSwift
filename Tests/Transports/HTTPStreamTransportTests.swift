@@ -150,7 +150,6 @@ import Testing
             let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
-                streaming: false,
                 logger: nil
             )
 
@@ -166,7 +165,6 @@ import Testing
             let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
-                streaming: false,
                 logger: nil
             )
             try await transport.connect()
@@ -208,7 +206,6 @@ import Testing
             let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
-                streaming: false,
                 logger: nil
             )
             try await transport.connect()
@@ -242,7 +239,6 @@ import Testing
             let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
-                streaming: false,
                 logger: nil
             )
             try await transport.connect()
@@ -291,7 +287,6 @@ import Testing
             let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
-                streaming: false,
                 logger: nil
             )
             try await transport.connect()
@@ -328,7 +323,6 @@ import Testing
             let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
-                streaming: false,
                 logger: nil
             )
             try await transport.connect()
@@ -365,7 +359,6 @@ import Testing
             let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
-                streaming: false,
                 logger: nil
             )
             try await transport.connect()
@@ -423,7 +416,6 @@ import Testing
                 let transport = HTTPStreamTransport(
                     endpoint: testEndpoint,
                     configuration: configuration,
-                    streaming: true,
                     logger: nil
                 )
 
@@ -483,7 +475,6 @@ import Testing
                 let transport = HTTPStreamTransport(
                     endpoint: testEndpoint,
                     configuration: configuration,
-                    streaming: true,
                     logger: nil
                 )
 
@@ -547,7 +538,6 @@ import Testing
             let transport = HTTPStreamTransport(
                 endpoint: testEndpoint,
                 configuration: configuration,
-                streaming: false,
                 logger: nil
             )
 

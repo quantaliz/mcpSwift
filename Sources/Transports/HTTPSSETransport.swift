@@ -39,21 +39,21 @@ import Logging
 /// // The transport will automatically handle SSE events
 /// // and deliver them through the client's notification handlers
 /// ```
-public actor HTTPSSETransport: MCPTransport {
+public actor HTTPSSETransport {
     /// The server endpoint URL to connect to
     public var endpoint: URL
     private let session: URLSession
-
+    
     /// The session ID assigned by the server, used for maintaining state across requests
     public private(set) var sessionID: String?
     private var streamingTask: Task<Void, Never>?
     
     /// Logger instance for transport-related events
     public nonisolated let logger: Logger
-
+    
     /// Maximum time to wait for a session ID before proceeding with SSE connection
     public let initTimeout: Duration
-
+    
     /// SSE needs to return the endpoint to use for POST requests
     private var waitingEndpoint: Bool = true
     
@@ -61,7 +61,7 @@ public actor HTTPSSETransport: MCPTransport {
     private var transportEnabled = false
     private let messageStream: AsyncThrowingStream<Data, Swift.Error>
     private let messageContinuation: AsyncThrowingStream<Data, Swift.Error>.Continuation
-
+    
     /// Creates a new HTTP transport client with the specified endpoint
     ///
     /// - Parameters:
@@ -80,18 +80,22 @@ public actor HTTPSSETransport: MCPTransport {
         self.session = URLSession(configuration: configuration)
         
         self.initTimeout = initTimeout
-
+        
         // Create message stream
         (messageStream, messageContinuation) = AsyncThrowingStream.makeStream(of: Data.self, throwing: Swift.Error.self)
         
-        self.logger =
-            logger
-            ?? Logger(
-                label: "mcp.transport.httpsse",
-                factory: { _ in SwiftLogNoOpLogHandler() }
-            )
+        self.logger = logger
+        ?? Logger(
+            label: "mcp.transport.httpsse",
+            factory: { _ in SwiftLogNoOpLogHandler() }
+        )
     }
+}
 
+// MARK: - MCPTransport protocol functions
+
+extension HTTPSSETransport: MCPTransport  {
+        
     /// Establishes connection with the transport
     ///
     /// This prepares the transport for communication and sets up SSE streaming
@@ -100,11 +104,11 @@ public actor HTTPSSETransport: MCPTransport {
     public func connect() async throws {
         guard !transportEnabled else { return }
         transportEnabled = true
-
+        
         try await connectToEventStream()
         logger.info("HTTP transport connected")
     }
-
+    
     /// Disconnects from the transport
     ///
     /// This terminates any active connections, cancels the streaming task,
@@ -112,20 +116,20 @@ public actor HTTPSSETransport: MCPTransport {
     public func disconnect() async {
         guard transportEnabled else { return }
         transportEnabled = false
-
+        
         // Cancel streaming task if active
         streamingTask?.cancel()
         streamingTask = nil
-
+        
         // Cancel any in-progress requests
         session.invalidateAndCancel()
-
+        
         // Clean up message stream
         messageContinuation.finish()
-
+        
         logger.info("HTTP+SSE transport disconnected")
     }
-
+    
     /// Sends data through an HTTP POST request
     ///
     /// This sends a JSON-RPC message to the server via HTTP POST and processes
@@ -153,6 +157,25 @@ public actor HTTPSSETransport: MCPTransport {
         let (responseStream, response) = try await sendRequest(httpMethod: "POST", body: data)
         try await processResponse(response: response, stream: responseStream)
     }
+    
+    /// Receives data in an async sequence
+    ///
+    /// This returns an AsyncThrowingStream that emits Data objects representing
+    /// each JSON-RPC message received from the server. This includes:
+    ///
+    /// - Direct responses to client requests
+    /// - Server-initiated messages delivered via SSE streams
+    ///
+    /// - Returns: An AsyncThrowingStream of Data objects
+    public func receive() -> AsyncThrowingStream<Data, Swift.Error> {
+        return messageStream
+    }
+    
+}
+
+// MARK: - Extra functions
+
+extension HTTPSSETransport {
     
     private func sendRequest(httpMethod: String, body: Data?, noCache: Bool = false) async throws -> (URLSession.AsyncBytes, URLResponse) {
         var request = URLRequest(url: endpoint)
@@ -193,18 +216,14 @@ public actor HTTPSSETransport: MCPTransport {
             logger.debug("Session ID received", metadata: ["sessionID": "\(newSessionID)"])
         }
         
-        try processHTTPResponse(httpResponse)
+        try HTTPTransportShared.processHTTPResponse(httpResponse)
         
-        guard case 200 ..< 300 = httpResponse.statusCode else {
-            throw MCPError.serverError(code: httpResponse.statusCode, message: "Request failed")
-        }
-
         // Process the response based on content type and status code
         guard let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type") else {
             #if DEBUG
             logger.warning("No known content type for response")
-            let buffer = try await processBytes(length: httpResponse.expectedContentLength,
-                                                stream: stream)
+            let buffer = try await HTTPTransportShared.processBytes(length: httpResponse.expectedContentLength,
+                                                                    stream: stream)
             let str = String(data: buffer, encoding: .utf8) ?? "[binary data]"
             logger.trace("Response bytes: `\(str)`", metadata: ["size": "\(buffer.count)"])
             #endif
@@ -217,89 +236,12 @@ public actor HTTPSSETransport: MCPTransport {
             try await processSSE(stream)
         } else if contentType.contains("application/json") {
             // For JSON responses, collect and deliver the data
-            let buffer = try await processBytes(length: httpResponse.expectedContentLength,
-                                                 stream: stream)
+            let buffer = try await HTTPTransportShared.processBytes(length: httpResponse.expectedContentLength,
+                                                                    stream: stream)
             
             logger.trace("Received JSON response", metadata: ["size": "\(buffer.count)"])
             messageContinuation.yield(buffer)
         }
-    }
-    
-    private func processBytes(length: Int64, stream: URLSession.AsyncBytes) async throws -> Data {
-        // For JSON responses, collect and deliver the data
-        var buffer = Data()
-        if length != NSURLSessionTransferSizeUnknown {
-            buffer.reserveCapacity(Int(length))
-        }
-        
-        for try await byte in stream {
-            buffer.append(byte)
-        }
-        
-        return buffer
-    }
-
-    // Common HTTP response handling for all platforms
-    private func processHTTPResponse(_ response: HTTPURLResponse) throws {
-        // Handle status codes according to HTTP semantics
-        switch response.statusCode {
-        case 200..<300:
-            // Success range - these are handled by the platform-specific code
-            return
-
-        case 400:
-            throw MCPError.internalError("Bad request")
-
-        case 401:
-            throw MCPError.internalError("Authentication required")
-
-        case 403:
-            throw MCPError.internalError("Access forbidden")
-
-        case 404:
-            // If we get a 404 with a session ID, it means our session is invalid
-            if sessionID != nil {
-                logger.warning("Session has expired")
-                sessionID = nil
-                throw MCPError.internalError("Session expired")
-            }
-            throw MCPError.internalError("Endpoint not found")
-
-        case 405:
-            // If we get a 405, it means the server does not support the requested method
-            // If streaming was requested, we should cancel the streaming task
-//            if streaming {
-//                self.streamingTask?.cancel()
-//            }
-            throw MCPError.methodNotAllowed
-
-        case 408:
-            throw MCPError.internalError("Request timeout")
-
-        case 429:
-            throw MCPError.internalError("Too many requests")
-
-        case 500..<600:
-            // Server error range
-            throw MCPError.internalError("Server error: \(response.statusCode)")
-
-        default:
-            throw MCPError.internalError(
-                "Unexpected HTTP response: \(response.statusCode)")
-        }
-    }
-
-    /// Receives data in an async sequence
-    ///
-    /// This returns an AsyncThrowingStream that emits Data objects representing
-    /// each JSON-RPC message received from the server. This includes:
-    ///
-    /// - Direct responses to client requests
-    /// - Server-initiated messages delivered via SSE streams
-    ///
-    /// - Returns: An AsyncThrowingStream of Data objects
-    public func receive() -> AsyncThrowingStream<Data, Swift.Error> {
-        return messageStream
     }
 
     /// Establishes an event connection and processes events
@@ -339,12 +281,7 @@ public actor HTTPSSETransport: MCPTransport {
     /// - Parameter stream: The URLSession.AsyncBytes stream to process
     /// - Throws: Error for stream processing failures
     private func processSSE(_ stream: URLSession.AsyncBytes) async throws {
-        var activeStream = true
         for try await event in stream.events {
-            if !activeStream {
-                break
-            }
-            
             // Check if task has been cancelled
             if Task.isCancelled { break }
             
@@ -353,7 +290,7 @@ public actor HTTPSSETransport: MCPTransport {
             // Check for server close events
             if event.event == "end" || event.event == "close" {
                 logger.trace("Server explicitly closed SSE stream")
-                activeStream = false
+                break
             }
         }
     }
@@ -373,31 +310,12 @@ public actor HTTPSSETransport: MCPTransport {
             return
         }
         
-        if event.event == "endpoint"
-        {
-            endpoint = retrieveURL(data, endpoint: endpoint)
+        if event.event == "endpoint" {
+            endpoint = HTTPTransportShared.retrieveURL(data, endpoint: endpoint)
             waitingEndpoint = false
         }
         else {
             messageContinuation.yield(data)
-        }
-    }
-    
-    func retrieveURL(_ data: Data, endpoint: URL) -> URL {
-        guard let extra = String(data: data, encoding: .utf8),
-              var endpointComp = URLComponents(url: endpoint, resolvingAgainstBaseURL: true)
-        else {
-            return endpoint
-        }
-        
-        endpointComp.path = extra
-        if let finalEndpoint = endpointComp.url?.absoluteString.removingPercentEncoding,
-           let finalURL = URL(string: finalEndpoint)
-        {
-            return finalURL
-        }
-        else {
-            return endpoint
         }
     }
 }
