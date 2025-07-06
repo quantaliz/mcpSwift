@@ -42,6 +42,10 @@ enum HTTPTransportShared
     }
     
     // Common HTTP response handling for all platforms
+    /// Processes HTTP responses according to MCP specification
+    ///
+    /// - Parameter response: HTTPURLResponse to validate
+    /// - Throws: `MCPError` for non-2xx status codes
     static func processHTTPResponse(_ response: HTTPURLResponse) throws {
         // Handle status codes according to HTTP semantics
         switch response.statusCode {

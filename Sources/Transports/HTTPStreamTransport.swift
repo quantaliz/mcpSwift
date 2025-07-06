@@ -64,13 +64,13 @@ public actor HTTPStreamTransport {
     private let messageStream: AsyncThrowingStream<Data, Swift.Error>
     private let messageContinuation: AsyncThrowingStream<Data, Swift.Error>.Continuation
     
-    /// Creates a new HTTP transport client with the specified endpoint
+    /// Creates a new HTTP Stream transport client
     ///
     /// - Parameters:
-    ///   - endpoint: The server URL to connect to
-    ///   - configuration: URLSession configuration to use for HTTP requests
-    ///   - initTimeout: Maximum time to wait for session ID before proceeding with SSE (default: 10 seconds)
-    ///   - logger: Optional logger instance for transport events
+    ///   - endpoint: Server URL to connect to
+    ///   - configuration: URLSession configuration for HTTP requests
+    ///   - initTimeout: Max wait time for session ID before SSE (default: 5 seconds)
+    ///   - logger: [Optional] Custom logger for transport events
     public init(
         endpoint: URL,
         configuration: URLSessionConfiguration = .default,
@@ -128,18 +128,10 @@ extension HTTPStreamTransport: MCPTransport  {
         logger.info("HTTP clienttransport disconnected")
     }
     
-    /// Sends data through an HTTP POST request
+    /// Sends JSON-RPC message via HTTP POST
     ///
-    /// This sends a JSON-RPC message to the server via HTTP POST and processes
-    /// the response according to the MCP Streamable HTTP specification. It handles:
-    ///
-    /// - Adding appropriate Accept headers for both JSON and SSE
-    /// - Including the session ID in requests if one has been established
-    /// - Processing different response types (JSON vs SSE)
-    /// - Handling HTTP error codes according to the specification
-    ///
-    /// - Parameter data: The JSON-RPC message to send
-    /// - Throws: MCPError for transport failures or server errors
+    /// - Parameter data: JSON-RPC message to send
+    /// - Throws: `MCPError` for transport failures or server errors
     public func send(_ data: Data) async throws {
         guard transportEnabled else {
             throw MCPError.internalError("Transport not connected")
@@ -237,10 +229,10 @@ extension HTTPStreamTransport {
         }
     }
 
-    /// Processes an SSE byte stream, extracting events and delivering them
+    /// Processes SSE events from byte stream
     ///
-    /// - Parameter stream: The URLSession.AsyncBytes stream to process
-    /// - Throws: Error for stream processing failures
+    /// - Parameter stream: Response byte stream to process
+    /// - Throws: `Error` if stream processing fails
     private func processSSE(_ stream: URLSession.AsyncBytes) async throws {
         for try await event in stream.events {
             // Check if task has been cancelled

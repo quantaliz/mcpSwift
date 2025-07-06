@@ -365,6 +365,10 @@ public actor MCPClient {
         return result
     }
 
+    /// Sends a ping request to the server to verify connectivity
+    /// and measure round-trip latency.
+    ///
+    /// - Throws: `MCPError` if unable to send request or receive response
     public func ping() async throws {
         let request = MCPPing.request()
         _ = try await send(request)
@@ -372,6 +376,13 @@ public actor MCPClient {
 
     // MARK: - Prompts
 
+    /// Retrieves a specific prompt by name
+    ///
+    /// - Parameters:
+    ///   - name: The name of the prompt to retrieve
+    ///   - arguments: [Optional] Key-value pairs to substitute into the prompt
+    /// - Returns: Tuple containing prompt description (optional) and list of messages
+    /// - Throws: `MCPError` if prompt not found or capability missing
     public func getPrompt(name: String, arguments: [String: MCPValue]? = nil) async throws
         -> (description: String?, messages: [MCPPrompt.Message])
     {
@@ -381,6 +392,11 @@ public actor MCPClient {
         return (description: result.description, messages: result.messages)
     }
 
+    /// Lists available prompts with pagination
+    ///
+    /// - Parameter cursor: [Optional] Pagination token from previous response
+    /// - Returns: Tuple containing list of prompts and next pagination token (optional)
+    /// - Throws: `MCPError` if capability missing
     public func listPrompts(cursor: String? = nil) async throws
         -> (prompts: [MCPPrompt], nextCursor: String?)
     {
@@ -397,6 +413,11 @@ public actor MCPClient {
 
     // MARK: - Resources
 
+    /// Reads resource content by URI
+    ///
+    /// - Parameter uri: Resource identifier to read
+    /// - Returns: List of resource content objects
+    /// - Throws: `MCPError` if resource not found or capability missing
     public func readResource(uri: String) async throws -> [MCPResource.Content] {
         try validateServerCapability(\.resources, "Resources")
         let request = ReadResource.request(.init(uri: uri))
@@ -404,6 +425,11 @@ public actor MCPClient {
         return result.contents
     }
 
+    /// Lists available resources with pagination
+    ///
+    /// - Parameter cursor: [Optional] Pagination token from previous response
+    /// - Returns: Tuple containing list of resources and next pagination token (optional)
+    /// - Throws: `MCPError` if capability missing
     public func listResources(cursor: String? = nil) async throws -> (
         resources: [MCPResource], nextCursor: String?
     ) {
@@ -418,12 +444,21 @@ public actor MCPClient {
         return (resources: result.resources, nextCursor: result.nextCursor)
     }
 
+    /// Subscribes to resource updates
+    ///
+    /// - Parameter uri: Resource identifier to subscribe to
+    /// - Throws: `MCPError` if subscription failed or capability missing
     public func subscribeToResource(uri: String) async throws {
         try validateServerCapability(\.resources?.subscribe, "Resource subscription")
         let request = ResourceSubscribe.request(.init(uri: uri))
         _ = try await send(request)
     }
 
+    /// Lists available resource templates with pagination
+    ///
+    /// - Parameter cursor: [Optional] Pagination token from previous response
+    /// - Returns: Tuple containing list of templates and next pagination token (optional)
+    /// - Throws: `MCPError` if capability missing
     public func listResourceTemplates(cursor: String? = nil) async throws -> (
         templates: [MCPResource.Template], nextCursor: String?
     ) {
@@ -440,6 +475,11 @@ public actor MCPClient {
 
     // MARK: - Tools
 
+    /// Lists available tools with pagination
+    ///
+    /// - Parameter cursor: [Optional] Pagination token from previous response
+    /// - Returns: Tuple containing list of tools and next pagination token (optional)
+    /// - Throws: `MCPError` if capability missing
     public func listTools(cursor: String? = nil) async throws -> (
         tools: [MCPTool], nextCursor: String?
     ) {
@@ -454,6 +494,13 @@ public actor MCPClient {
         return (tools: result.tools, nextCursor: result.nextCursor)
     }
 
+    /// Calls a tool by name with given arguments
+    ///
+    /// - Parameters:
+    ///   - name: Name of tool to call
+    ///   - arguments: [Optional] Key-value pairs as tool inputs
+    /// - Returns: Tuple containing tool response content and error flag (optional)
+    /// - Throws: `MCPError` if tool not found, capability missing, or execution failed
     public func callTool(name: String, arguments: [String: MCPValue]? = nil) async throws -> (
         content: [MCPTool.Content], isError: Bool?
     ) {

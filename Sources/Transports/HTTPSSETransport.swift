@@ -62,13 +62,13 @@ public actor HTTPSSETransport {
     private let messageStream: AsyncThrowingStream<Data, Swift.Error>
     private let messageContinuation: AsyncThrowingStream<Data, Swift.Error>.Continuation
     
-    /// Creates a new HTTP transport client with the specified endpoint
+    /// Creates a new HTTP SSE transport client for bidirectional communication
     ///
     /// - Parameters:
-    ///   - endpoint: The server URL to connect to
-    ///   - configuration: URLSession configuration to use for HTTP requests
-    ///   - initTimeout: Maximum time to wait for session ID before proceeding with SSE (default: 10 seconds)
-    ///   - logger: Optional logger instance for transport events
+    ///   - endpoint: Server URL to connect to
+    ///   - configuration: URLSession configuration for HTTP requests
+    ///   - initTimeout: Max wait time for session ID before SSE connection (default: 5 seconds)
+    ///   - logger: [Optional] Custom logger for transport events
     public init(
         endpoint: URL,
         configuration: URLSessionConfiguration = .default,
@@ -95,11 +95,9 @@ public actor HTTPSSETransport {
 
 extension HTTPSSETransport: MCPTransport  {
         
-    /// Establishes connection with the transport
+    /// Prepares transport for communication including SSE setup
     ///
-    /// This prepares the transport for communication and sets up SSE streaming
-    /// if streaming mode is enabled. The actual HTTP connection happens with the
-    /// first message sent.
+    /// - Throws: `MCPError` if connection initialization fails
     public func connect() async throws {
         guard !transportEnabled else { return }
         transportEnabled = true
@@ -129,18 +127,10 @@ extension HTTPSSETransport: MCPTransport  {
         logger.info("HTTP+SSE transport disconnected")
     }
     
-    /// Sends data through an HTTP POST request
+    /// Sends JSON-RPC message via HTTP POST
     ///
-    /// This sends a JSON-RPC message to the server via HTTP POST and processes
-    /// the response according to the MCP Streamable HTTP specification. It handles:
-    ///
-    /// - Adding appropriate Accept headers for both JSON and SSE
-    /// - Including the session ID in requests if one has been established
-    /// - Processing different response types (JSON vs SSE)
-    /// - Handling HTTP error codes according to the specification
-    ///
-    /// - Parameter data: The JSON-RPC message to send
-    /// - Throws: MCPError for transport failures or server errors
+    /// - Parameter data: JSON-RPC message to send
+    /// - Throws: `MCPError` for transport failures or server errors
     public func send(_ data: Data) async throws {
         guard transportEnabled else {
             throw MCPError.internalError("Transport not connected")
