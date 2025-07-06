@@ -213,6 +213,11 @@ extension HTTPStreamTransport {
         
         try HTTPTransportShared.processHTTPResponse(httpResponse)
         
+        if httpResponse.expectedContentLength == 0 {
+            logger.trace("httpResponse code \(httpResponse.statusCode) with expectedContentLength == 0")
+            return
+        }
+        
         // Process the response based on content type and status code
         guard let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type") else {
             #if DEBUG
@@ -228,8 +233,8 @@ extension HTTPStreamTransport {
         if contentType.contains("text/event-stream") {
             // For SSE, processing happens via the stream
             logger.trace("Received SSE response, processing in streaming task")
-            try await startStreaming(stream)
-//            try await processSSE(stream)
+//            try await startStreaming(stream)
+            try await processSSE(stream)
         } else if contentType.contains("application/json") {
             // For JSON responses, collect and deliver the data
             let buffer = try await HTTPTransportShared.processBytes(length: httpResponse.expectedContentLength,
@@ -333,11 +338,10 @@ extension HTTPStreamTransport {
             if Task.isCancelled { break }
 
             logger.trace(
-                "SSE event received",
+                "SSE event received: \(event.data)",
                 metadata: [
                     "type": "\(event.event ?? "message")",
                     "id": "\(event.id ?? "none")",
-                    "data": "\(event.data)",
                 ]
             )
             

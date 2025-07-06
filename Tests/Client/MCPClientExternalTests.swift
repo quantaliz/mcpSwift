@@ -25,7 +25,9 @@ struct MCPClientExternalTests {
         logger.logLevel = .trace
         let url = URL(
             string:
-                "https://mcp.deepwiki.com/mcp"
+//                "https://mcp.deepwiki.com/mcp"
+//            "https://remote.mcpservers.org/fetch/mcp"
+            "https://remote.mcpservers.org/sequentialthinking/mcp"
         )!
 
         let transport = HTTPStreamTransport(endpoint: url, logger: logger)
@@ -70,6 +72,7 @@ struct MCPClientExternalTests {
         let url = URL(
             string:
                 "https://agents-mcp-hackathon-quantaliz-mcp-micropayments.hf.space/gradio_api/mcp/sse"
+//            "https://mcp.deepwiki.com/sse"
         )!
         
         let transport = HTTPSSETransport(endpoint: url, logger: logger)
