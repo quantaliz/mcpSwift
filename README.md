@@ -39,7 +39,7 @@ Then add the dependency to your target:
 
 ## Client usage
 
-Check the Examples folder for further details
+Check the [Examples](./Examples/README.md) folder for further details
 
 ## Platform Availability
 
