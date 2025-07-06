@@ -67,7 +67,6 @@ public actor HTTPSSETransport {
     /// - Parameters:
     ///   - endpoint: The server URL to connect to
     ///   - configuration: URLSession configuration to use for HTTP requests
-    ///   - streaming: Whether to enable SSE streaming mode (default: true)
     ///   - initTimeout: Maximum time to wait for session ID before proceeding with SSE (default: 10 seconds)
     ///   - logger: Optional logger instance for transport events
     public init(
