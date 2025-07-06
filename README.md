@@ -43,7 +43,7 @@ Check the [Examples](./Examples/README.md) folder for further details
 
 ## Platform Availability
 
-The Quantaliz' mcpSwift  has the following platform requirements:
+The Quantaliz' mcpSwift has the following platform requirements:
 
 | Platform | Minimum Version |
 |----------|-----------------|
