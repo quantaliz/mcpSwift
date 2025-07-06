@@ -32,9 +32,9 @@ struct ServerTests {
 
         // Queue an initialize request
         try await transport.queue(
-            request: Initialize.request(
+            request: MCPInitialize.request(
                 .init(
-                    protocolVersion: Version.latest,
+                    protocolVersion: MCPVersion.latest,
                     capabilities: .init(),
                     clientInfo: .init(name: "TestClient", version: "1.0")
                 )
@@ -76,7 +76,7 @@ struct ServerTests {
         let server = Server(name: "TestServer", version: "1.0")
 
         // Start with the hook directly
-        try await server.start(transport: transport) { clientInfo, capabilities in
+        try await server.start(transport: transport) { clientInfo, _ in
             #expect(clientInfo.name == "TestClient")
             #expect(clientInfo.version == "1.0")
             await state.setHookCalled()
@@ -87,9 +87,9 @@ struct ServerTests {
 
         // Queue an initialize request
         try await transport.queue(
-            request: Initialize.request(
+            request: MCPInitialize.request(
                 .init(
-                    protocolVersion: Version.latest,
+                    protocolVersion: MCPVersion.latest,
                     capabilities: .init(),
                     clientInfo: .init(name: "TestClient", version: "1.0")
                 )
@@ -118,7 +118,7 @@ struct ServerTests {
 
         try await server.start(transport: transport) { clientInfo, _ in
             if clientInfo.name == "BlockedClient" {
-                throw MCPError.invalidRequest("Client not allowed")
+                throw MCPError.invalidRequest("MCPClient not allowed")
             }
         }
 
@@ -127,9 +127,9 @@ struct ServerTests {
 
         // Queue an initialize request from blocked client
         try await transport.queue(
-            request: Initialize.request(
+            request: MCPInitialize.request(
                 .init(
-                    protocolVersion: Version.latest,
+                    protocolVersion: MCPVersion.latest,
                     capabilities: .init(),
                     clientInfo: .init(name: "BlockedClient", version: "1.0")
                 )
@@ -143,7 +143,7 @@ struct ServerTests {
         let messages = await transport.sentMessages
         if let response = messages.first {
             #expect(response.contains("error"))
-            #expect(response.contains("Client not allowed"))
+            #expect(response.contains("MCPClient not allowed"))
         }
 
         await server.stop()
@@ -160,9 +160,9 @@ struct ServerTests {
 
         // Initialize the server first
         try await transport.queue(
-            request: Initialize.request(
+            request: MCPInitialize.request(
                 .init(
-                    protocolVersion: Version.latest,
+                    protocolVersion: MCPVersion.latest,
                     capabilities: .init(),
                     clientInfo: .init(name: "TestClient", version: "1.0")
                 )
@@ -182,7 +182,7 @@ struct ServerTests {
                 {"jsonrpc":"2.0","id":2,"method":"ping","params":{}}
             ]
             """
-        let batch = try JSONDecoder().decode([AnyRequest].self, from: batchJSON.data(using: .utf8)!)
+        let batch = try JSONDecoder().decode([AnyMCPRequest].self, from: batchJSON.data(using: .utf8)!)
 
         // Send the batch request
         try await transport.queue(batch: batch)

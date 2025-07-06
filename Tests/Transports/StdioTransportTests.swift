@@ -9,7 +9,7 @@
 
 import Foundation
 import Testing
-
+import Logging
 @testable import MCPSwift
 
 #if canImport(System)
@@ -18,7 +18,7 @@ import Testing
     @preconcurrency import SystemPackage
 #endif
 
-@Suite("Stdio Transport Tests")
+@Suite("Stdio MCPTransport Tests")
 struct StdioTransportTests {
     @Test("Connection")
     func testStdioTransportConnection() async throws {
@@ -29,7 +29,7 @@ struct StdioTransportTests {
         await transport.disconnect()
     }
 
-    @Test("Send Message")
+    @Test("Send MCPMessage")
     func testStdioTransportSendMessage() async throws {
         let (reader, output) = try FileDescriptor.pipe()
         let (input, _) = try FileDescriptor.pipe()
@@ -52,7 +52,7 @@ struct StdioTransportTests {
         await transport.disconnect()
     }
 
-    @Test("Receive Message")
+    @Test("Receive MCPMessage")
     func testStdioTransportReceiveMessage() async throws {
         let (input, writer) = try FileDescriptor.pipe()
         let (_, output) = try FileDescriptor.pipe()

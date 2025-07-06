@@ -55,12 +55,12 @@ struct RoundtripTests {
         )
         await server.withMethodHandler(ListTools.self) { _ in
             return ListTools.Result(tools: [
-                Tool(
+                MCPTool(
                     name: "add",
                     description: "Adds two numbers together",
                     inputSchema: [
                         "a": ["type": "integer", "description": "The first number"],
-                        "a": ["type": "integer", "description": "The second number"],
+                        "a": ["type": "integer", "description": "The second number"]
                     ])
             ])
         }
@@ -82,18 +82,18 @@ struct RoundtripTests {
         // Add resource handlers to server
         await server.withMethodHandler(ListResources.self) { _ in
             return ListResources.Result(resources: [
-                Resource(
+                MCPResource(
                     name: "Example Text",
                     uri: "test://example.txt",
                     description: "A test resource",
                     mimeType: "text/plain"
                 ),
-                Resource(
+                MCPResource(
                     name: "Test Data",
                     uri: "test://data.json",
                     description: "JSON test data",
                     mimeType: "application/json"
-                ),
+                )
             ])
         }
 
@@ -105,7 +105,7 @@ struct RoundtripTests {
             return ReadResource.Result(contents: [.text("Hello, World!", uri: request.uri)])
         }
 
-        let client = Client(name: "TestClient", version: "1.0")
+        let client = MCPClient(name: "TestClient", version: "1.0")
 
         try await server.start(transport: serverTransport)
 
@@ -116,7 +116,7 @@ struct RoundtripTests {
             #expect(result.serverInfo.version == "1.0.0")
             #expect(result.capabilities.prompts != nil)
             #expect(result.capabilities.tools != nil)
-            #expect(result.protocolVersion == Version.latest)
+            #expect(result.protocolVersion == MCPVersion.latest)
         }
         try await withThrowingTaskGroup(of: Void.self) { group in
             group.addTask {
@@ -134,7 +134,7 @@ struct RoundtripTests {
         // Test ping
         let pingTask = Task {
             try await client.ping()
-            // Ping doesn't return anything, so just getting here without throwing is success
+            // MCPPing doesn't return anything, so just getting here without throwing is success
             #expect(Bool(true))
         }
 

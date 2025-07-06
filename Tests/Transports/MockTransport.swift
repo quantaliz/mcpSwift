@@ -17,7 +17,7 @@ import struct Foundation.POSIXError
 @testable import MCPSwift
 
 /// Mock transport for testing
-actor MockTransport: Transport {
+actor MockTransport: MCPTransport {
     var logger: Logger
 
     let encoder = JSONEncoder()
@@ -97,23 +97,23 @@ actor MockTransport: Transport {
         }
     }
 
-    func queue<M: Method>(request: Request<M>) throws {
+    func queue<M: MCPMethod>(request: MCPRequest<M>) throws {
         queue(data: try encoder.encode(request))
     }
 
-    func queue<M: Method>(response: Response<M>) throws {
+    func queue<M: MCPMethod>(response: MCPResponse<M>) throws {
         queue(data: try encoder.encode(response))
     }
 
-    func queue<N: Notification>(notification: Message<N>) throws {
+    func queue<N: MCPNotification>(notification: MCPMessage<N>) throws {
         queue(data: try encoder.encode(notification))
     }
 
-    func queue(batch requests: [AnyRequest]) throws {
+    func queue(batch requests: [AnyMCPRequest]) throws {
         queue(data: try encoder.encode(requests))
     }
 
-    func queue(batch responses: [AnyResponse]) throws {
+    func queue(batch responses: [AnyMCPResponse]) throws {
         queue(data: try encoder.encode(responses))
     }
 

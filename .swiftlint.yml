@@ -1,0 +1,15 @@
+analyzer_rules: # rules run by `swiftlint analyze`
+  - explicit_self
+
+# Case-sensitive paths to include during linting. Directory paths supplied on the
+# command line will be ignored.
+included:
+  - Sources
+  - Tests
+excluded: # case-sensitive paths to ignore during linting. Takes precedence over `included`
+  - .build
+  - Carthage
+  - Pods
+  - Sources/ExcludedFolder
+  - Sources/ExcludedFile.swift
+  - Sources/*/ExcludedFile.swift # exclude files with a wildcard

@@ -176,7 +176,7 @@ import Testing
         }
     }
 
-    @Suite("Network Transport Tests", .serialized)
+    @Suite("Network MCPTransport Tests", .serialized)
     struct NetworkTransportTests {
         @Test("Heartbeat Creation And Parsing")
         func testHeartbeatCreationAndParsing() {
@@ -294,7 +294,7 @@ import Testing
             await transport.disconnect()
         }
 
-        @Test("Send Message")
+        @Test("Send MCPMessage")
         func testNetworkTransportSendMessage() async throws {
             let mockConnection = MockNetworkConnection()
             let transport = NetworkTransport(
@@ -320,7 +320,7 @@ import Testing
             await transport.disconnect()
         }
 
-        @Test("Receive Message")
+        @Test("Receive MCPMessage")
         func testNetworkTransportReceiveMessage() async throws {
             let mockConnection = MockNetworkConnection()
             let transport = NetworkTransport(
@@ -446,7 +446,7 @@ import Testing
             let messages = [
                 #"{"id":1,"method":"test1"}"#,
                 #"{"id":2,"method":"test2"}"#,
-                #"{"id":3,"method":"test3"}"#,
+                #"{"id":3,"method":"test3"}"#
             ]
 
             for message in messages {
@@ -532,7 +532,7 @@ import Testing
             await transport.disconnect()
         }
 
-        @Test("Partial Message Reception")
+        @Test("Partial MCPMessage Reception")
         func testPartialMessageReception() async throws {
             let mockConnection = MockNetworkConnection()
             let transport = NetworkTransport(
@@ -547,7 +547,7 @@ import Testing
             let parts = [
                 message.prefix(5).data(using: .utf8)!,
                 message.dropFirst(5).data(using: .utf8)!,
-                "\n".data(using: .utf8)!,
+                "\n".data(using: .utf8)!
             ]
 
             // Queue the parts
@@ -569,7 +569,7 @@ import Testing
             await transport.disconnect()
         }
 
-        @Test("Large Message Handling")
+        @Test("Large MCPMessage Handling")
         func testLargeMessageHandling() async throws {
             let mockConnection = MockNetworkConnection()
             let transport = NetworkTransport(
@@ -669,7 +669,7 @@ import Testing
             await transport.disconnect()
         }
 
-        @Test("Resource Cleanup")
+        @Test("MCPResource Cleanup")
         func testResourceCleanup() async throws {
             weak var weakConnection: MockNetworkConnection?
 
