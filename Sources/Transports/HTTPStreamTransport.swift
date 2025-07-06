@@ -104,12 +104,6 @@ extension HTTPStreamTransport: MCPTransport  {
     public func connect() async throws {
         guard !transportEnabled else { return }
         transportEnabled = true
-        
-//        if streaming {
-//            // Start listening to server events
-//            try await startStreaming()
-//        }
-        
         logger.info("HTTP transport enabled")
     }
     
@@ -233,7 +227,6 @@ extension HTTPStreamTransport {
         if contentType.contains("text/event-stream") {
             // For SSE, processing happens via the stream
             logger.trace("Received SSE response, processing in streaming task")
-//            try await startStreaming(stream)
             try await processSSE(stream)
         } else if contentType.contains("application/json") {
             // For JSON responses, collect and deliver the data
@@ -242,90 +235,6 @@ extension HTTPStreamTransport {
             logger.trace("Received JSON response", metadata: ["size": "\(buffer.count)"])
             messageContinuation.yield(buffer)
         }
-    }
-
-    /// Starts listening for server events using SSE.
-    ///
-    /// This method should be called by the client after successful initialization
-    /// and capability negotiation, if streaming is desired and supported.
-    ///
-    /// - Throws: `MCPError.internalError` if the transport is not connected or streaming is disabled.
-    public func startStreaming(_ stream: URLSession.AsyncBytes? = nil) async throws {
-        guard transportEnabled else {
-            throw MCPError.internalError("Transport not connected, cannot start streaming.")
-        }
-        guard streamingTask == nil else {
-            logger.info("Streaming task already running.")
-            return
-        }
-
-        // Start listening to server events
-        streamingTask = Task { await startListeningForServerEvents(stream) }
-        logger.info("HTTP transport streaming started.")
-    }
-
-    /// Starts listening for server events
-    ///
-    /// This establishes a long-lived HTTP connection using Server-Sent Events (SSE)
-    /// to enable server-to-client push messaging. It handles:
-    ///
-    /// - Waiting for session ID if needed
-    /// - Opening the SSE connection
-    /// - Automatic reconnection on connection drops
-    /// - Processing received events
-    private func startListeningForServerEvents(_ stream: URLSession.AsyncBytes? = nil) async {
-        // This is the original code for platforms that support SSE
-        guard transportEnabled else { return }
-
-        // Retry loop for connection drops
-        while transportEnabled && !Task.isCancelled {
-            do {
-                if let stream = stream {
-                    try await processSSE(stream)
-                }
-                else {
-                    try await connectToEventStream()
-                }
-                // If connectToEventStream() returns, the connection was closed normally - break out
-                break
-            } catch {
-                if !Task.isCancelled {
-                    logger.error("SSE connection error: \(error)")
-                    // Wait before retrying
-                    try? await Task.sleep(for: .seconds(1))
-                }
-            }
-        }
-    }
-    
-    private func waitForSessionID() async -> Bool {
-        try? await Task.sleep(for: initTimeout)
-        if sessionID != nil {
-            return true
-        }
-        else {
-            return false
-        }
-    }
-    
-    /// Establishes an event connection and processes events
-    ///
-    /// This follows the MCP specification for Streamable HTTP transport:
-    /// 1. Clients MUST use HTTP GET to open an SSE stream
-    /// 2. Clients MUST include `Accept: text/event-stream` header
-    /// 3. Clients MAY include the session ID if available
-    /// 4. Clients MUST support both SSE and HTTP long-polling
-    /// This initiates a GET request to the server endpoint with appropriate
-    /// headers to establish an SSE stream according to the MCP specification.
-    ///
-    /// - Throws: MCPError for connection failures or server errors
-    private func connectToEventStream() async throws {
-        guard transportEnabled else {
-            throw MCPError.internalError("Transport not connected")
-        }
-        
-        let (responseStream, response) = try await sendRequest(httpMethod: "GET", body: nil, noCache: true)
-        try await processResponse(response: response, stream: responseStream)
     }
 
     /// Processes an SSE byte stream, extracting events and delivering them
