@@ -22,7 +22,7 @@ public enum MCPVersion {
     static let supported: Set<String> = [
         "2024-11-05",
         "2025-03-26",
-        "2025-06-18" // Added based on schema files
+        "2025-06-18" // TODO!! needs to confirm all changes are fully supported
     ]
 
     /// The latest protocol version supported by this implementation.
